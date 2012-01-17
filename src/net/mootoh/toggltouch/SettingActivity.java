@@ -47,7 +47,7 @@ public class SettingActivity extends Activity {
         taskSet.toArray(tasks);
 
         ListView taskListView = (ListView)findViewById(R.id.taskList);
-        ArrayAdapter<String> taskAdapter = new ArrayAdapter<String>(this, R.layout.task_list_item, tasks);
+        ArrayAdapter<String> taskAdapter = new ArrayAdapter<String>(this, R.layout.task_list_item, R.id.task_list_item_label, tasks);
         taskListView.setAdapter(taskAdapter);
 
         for (String task: tasks)

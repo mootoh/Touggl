@@ -1,7 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:padding="10dp"
-    android:textSize="16sp" >
-</TextView>
+    android:orientation="horizontal"
+    android:padding="10dp" >
+
+    <TextView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/task_list_item_label"
+        android:layout_width="180dp"
+        android:layout_height="fill_parent"
+        android:textSize="16sp" />
+
+    <View
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="64dp"
+        android:layout_height="fill_parent"
+        android:background="#ff7f00" />
+
+</LinearLayout>
