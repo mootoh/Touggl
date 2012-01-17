@@ -31,8 +31,8 @@ public class TagTouchActivity extends Activity {
         if (tagId == null)
             return;
 
-        TagStore tagStore = new TagStore(this);
-        if (tagStore.isBrandNewTag(tagId)) {
+        PersistentStorage pStorage = new PersistentStorage(this);
+        if (pStorage.isBrandNewTag(tagId)) {
             Intent newTagIntent = new Intent();
             newTagIntent.putExtra("tagId", tagId);
             newTagIntent.setClass(this, SettingActivity.class);
@@ -41,14 +41,14 @@ public class TagTouchActivity extends Activity {
             return;
         }
 
-        Tag currentTag = tagStore.currentTag();
+        Tag currentTag = pStorage.currentTag();
         try {
             if (currentTag != null && currentTag.id.equals(tagId)) {
-                tagStore.stopCurrentTag();
+                pStorage.stopCurrentTag();
                 Toast.makeText(this, currentTag.name + " end.", Toast.LENGTH_SHORT).show();
             } else {
-                tagStore.startTag(tagId);
-                Toast.makeText(this, tagStore.getTagName(tagId) + " start.", Toast.LENGTH_SHORT).show();
+                pStorage.startTag(tagId);
+                Toast.makeText(this, pStorage.getTagName(tagId) + " start.", Toast.LENGTH_SHORT).show();
             }
         } catch (SQLException e) {
             Log.e(TAG, "Cannot start/stop the tag:" + tagId);
