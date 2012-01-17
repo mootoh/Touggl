@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 
 public class SettingActivity extends Activity {
     protected static final String API_TOKEN = "toggl_api_token";
@@ -33,15 +35,21 @@ public class SettingActivity extends Activity {
             return;
         }
 
-        setContentView(R.layout.main);
+        setContentView(R.layout.setting);
         renderTasks();
     }
 
     private void renderTasks() {
         SharedPreferences sp = getSharedPreferences(SettingActivity.API_TOKEN, 0);
         String token = sp.getString(API_TOKEN_KEY, null);
+        Set <String> taskSet = TogglApi.getTasks(token);
+        String[] tasks = new String[taskSet.size()];
+        taskSet.toArray(tasks);
 
-        Set <String> tasks = TogglApi.getTasks(token);
+        ListView taskListView = (ListView)findViewById(R.id.taskList);
+        ArrayAdapter<String> taskAdapter = new ArrayAdapter<String>(this, R.layout.task_list_item, tasks);
+        taskListView.setAdapter(taskAdapter);
+
         for (String task: tasks)
             Log.d(getClass().getSimpleName(), "tasks:" + task);
     }
@@ -65,7 +73,7 @@ public class SettingActivity extends Activity {
         spe.putString(SettingActivity.API_TOKEN_KEY, apiToken);
         spe.commit();
 
-        setContentView(R.layout.main);
+        setContentView(R.layout.setting);
     }
 
     private boolean hasToken() {
