@@ -46,8 +46,8 @@ public class TogglApi {
         new RequestApiTokenTask(activity).execute(name, password);
     }
 
-    public static Set <String> getTasks(String token) {
-        Set <String> response = null;
+    public static Set <TimeEntry> getTimeEntries(String token) {
+        Set <TimeEntry> response = null;
         try {
             response = new TimeEntriesTask().execute(token).get();
         } catch (InterruptedException e) {
@@ -140,9 +140,9 @@ class RequestApiTokenTask extends AsyncTask<String, Integer, String> {
     }
 }
 
-class TimeEntriesTask extends AsyncTask<String, Integer, Set <String> > {
+class TimeEntriesTask extends AsyncTask<String, Integer, Set <TimeEntry> > {
     @Override
-    protected Set<String> doInBackground(String... params) {
+    protected Set<TimeEntry> doInBackground(String... params) {
         URL url = null;
 
         try {
@@ -171,10 +171,13 @@ class TimeEntriesTask extends AsyncTask<String, Integer, Set <String> > {
 
             JSONObject json = new JSONObject(response);
             JSONArray data = json.getJSONArray("data");
-            Set <String> ret = new HashSet<String>(data.length());
+            Set <TimeEntry> ret = new HashSet<TimeEntry>(data.length());
             for (int i=0; i<data.length(); i++) {
                 JSONObject obj = (JSONObject)data.get(i);
-                ret.add(obj.getString("description"));
+                int id = obj.getInt("id");
+                String description = obj.getString("description");
+                TimeEntry entry = new TimeEntry(id, description);
+                ret.add(entry);
             }
 
             return ret;

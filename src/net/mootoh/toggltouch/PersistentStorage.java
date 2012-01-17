@@ -6,7 +6,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.SimpleTimeZone;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -92,7 +96,7 @@ public final class PersistentStorage {
 
         addVoidTag(db);
         addVoidTouch(db);
-}
+    }
 
     private void addVoidTag(SQLiteDatabase db) throws SQLException {
         // void tag is permanent
@@ -215,6 +219,47 @@ public final class PersistentStorage {
 
         return String.format("%02d:%02d:%02d", elapsedHour, elapsedMin, elapsedSec);
     }
+
+    public void addTimeEntry(JSONObject json) throws SQLException, JSONException {
+        int id;
+        String description;
+        id = json.getInt("id");
+        description = json.getString("description");
+
+        ContentValues values = new ContentValues();
+        values.put("id", id);
+        values.put("description", description);
+
+        SQLiteDatabase db = databaseHelper.getWritableDatabase();
+        long rowId = db.insert("timeEntries", null, values);
+        if (rowId <= 0)
+            throw new SQLException("Faild to insert row for id:" + id + ", description:" + description);
+    }
+
+    public void addTimeEntry(TimeEntry entry) throws SQLException {
+        ContentValues values = new ContentValues();
+        values.put("id", entry.getId());
+        values.put("description", entry.getDescription());
+
+        SQLiteDatabase db = databaseHelper.getWritableDatabase();
+        long rowId = db.insert("timeEntries", null, values);
+        if (rowId <= 0)
+            throw new SQLException("Faild to insert row for id:" + entry.getId() + ", description:" + entry.getDescription());
+    }
+
+    public List <TimeEntry> getTimeEntries() {
+        SQLiteDatabase db = databaseHelper.getReadableDatabase();
+        Cursor cursor = db.query("timeEntries", null, null, null, null, null, null);
+
+        ArrayList <TimeEntry> entries = new ArrayList<TimeEntry>();
+        while (cursor.moveToNext()) {
+            TimeEntry entry = new TimeEntry(cursor.getInt(cursor.getColumnIndex("id")),
+                    cursor.getString(cursor.getColumnIndex("description")));
+            entries.add(entry);
+        }
+        cursor.close();
+        return entries;
+    }
 }
 
 final class DatabaseHelper extends SQLiteOpenHelper {
@@ -230,6 +275,11 @@ final class DatabaseHelper extends SQLiteOpenHelper {
                 + "tagId text not null, "
                 + "touchedAt DATETIME DEFAULT CURRENT_TIMESTAMP PRIMARY KEY"
                 + ");",
+        "create TABLE timeEntries ("
+                + "id integer not null primary key, "
+                + "description TEXT not null"
+                + ");",
+
         "insert into tags (id, name, color) values ('VOID_TAG_ID', 'VOID', '999999');",
         "insert into touches (tagId) values ('VOID_TAG_ID');"
     };
