@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 public class SettingActivity extends Activity {
     protected static final String API_TOKEN = "toggl_api_token";
@@ -32,11 +33,28 @@ public class SettingActivity extends Activity {
             android.content.Intent authIntent = new android.content.Intent();
             authIntent.setClass(getApplicationContext(), AuthActivity.class);
             startActivityForResult(authIntent, API_TOKEN_RESULT);
-            return;
         }
 
         setContentView(R.layout.setting);
-        renderTasks();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        Intent intent = getIntent();
+        Bundle extras = intent.getExtras();
+        if (extras == null) {
+            renderTasks();
+            return;
+        }
+
+        String tagId = extras.getString("tagId");
+        if (tagId != null) {
+            Log.d(getClass().getSimpleName(), "tagId:" + tagId);
+            TextView messageLabel = (TextView)findViewById(R.id.messageLabel);
+            messageLabel.setText("Pick a task for this Tag:" + tagId);
+        }
     }
 
     private void renderTasks() {
@@ -72,9 +90,6 @@ public class SettingActivity extends Activity {
         SharedPreferences.Editor spe = sp.edit();
         spe.putString(SettingActivity.API_TOKEN_KEY, apiToken);
         spe.commit();
-
-        setContentView(R.layout.setting);
-        renderTasks();
     }
 
     private boolean hasToken() {
