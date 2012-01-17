@@ -19,6 +19,8 @@
     <TextView
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:imeOptions="actionSend|flagNoEnterAction"
+        android:inputType="textEmailAddress"
         android:text="@string/password" />
 
     <EditText
@@ -27,10 +29,23 @@
         android:layout_height="wrap_content"
         android:inputType="textPassword" />
 
-    <Button
-        android:id="@+id/authSubmitButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Go" />
+    <LinearLayout
+        android:id="@+id/linearLayout1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <Button
+            android:id="@+id/authSubmitButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Go" />
+
+        <ProgressBar
+            android:id="@+id/loginProgressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:indeterminateOnly="true" />
+    </LinearLayout>
 
 </LinearLayout>

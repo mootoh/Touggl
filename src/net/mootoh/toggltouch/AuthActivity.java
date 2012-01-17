@@ -5,15 +5,20 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 public class AuthActivity extends Activity {
     Button submitButton;
+    ProgressBar loginProgressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.auth);
+        loginProgressBar = (ProgressBar)findViewById(R.id.loginProgressBar);
+        loginProgressBar.setEnabled(false);
+        loginProgressBar.setVisibility(ProgressBar.INVISIBLE);
 
         submitButton = (Button)findViewById(R.id.authSubmitButton);
         final EditText nameText = (EditText)findViewById(R.id.nameText);
@@ -32,7 +37,8 @@ public class AuthActivity extends Activity {
                 }
 
                 submitButton.setEnabled(false);
-                // start the progress indicator
+                loginProgressBar.setEnabled(true);
+                loginProgressBar.setVisibility(ProgressBar.VISIBLE);
 
                 // send a request to toggl server to obtain API token
                 TogglApi.requestApiToken(name, password, self);
@@ -45,15 +51,17 @@ public class AuthActivity extends Activity {
     }
 
     public void onLoginSucceeded(String apiToken) {
+        loginProgressBar.setVisibility(ProgressBar.GONE);
         backToSettingActivity(apiToken);
     }
-    
+
     public void onLoginFailed() {
         Toast errorToast = Toast.makeText(getApplicationContext(), "Invalid username/password.", Toast.LENGTH_SHORT);
         errorToast.show();
 
         // stop the progress indicator
         submitButton.setEnabled(true);
+        loginProgressBar.setVisibility(ProgressBar.INVISIBLE);
     }
 
     private void backToSettingActivity(String apiToken) {
