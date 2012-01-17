@@ -260,6 +260,39 @@ public final class PersistentStorage {
         cursor.close();
         return entries;
     }
+
+    private TimeEntry getTimeEntryForTagId(String tagId) {
+        SQLiteDatabase db = databaseHelper.getReadableDatabase();
+        String[] args = {tagId};
+        Cursor cursor = db.query("timeEntries", null, "tagId=?", args, null, null, null);
+
+        TimeEntry entry = null;
+        while (cursor.moveToNext()) {
+            entry = new TimeEntry(cursor.getInt(cursor.getColumnIndex("id")), cursor.getString(cursor.getColumnIndex("description")), cursor.getString(cursor.getColumnIndex("tagId")));
+            break;
+        }
+        cursor.close();
+
+        return entry;
+    }
+
+    public void assignTagForTimeEntry(String tagId, TimeEntry timeEntry) {
+        TimeEntry existance = getTimeEntryForTagId(tagId);
+        if (existance != null) {
+            removeTagFromTimeEntry(tagId, existance);
+        }
+
+        SQLiteDatabase db = databaseHelper.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("tagId", tagId);
+
+        String args[] = {"" + timeEntry.getId()};
+        db.update("timeEntries", values, "id=?", args);
+    }
+
+    public void removeTagFromTimeEntry(String tagId, TimeEntry timeEntry) {
+        // TODO Auto-generated method stub
+    }
 }
 
 final class DatabaseHelper extends SQLiteOpenHelper {
@@ -277,7 +310,8 @@ final class DatabaseHelper extends SQLiteOpenHelper {
                 + ");",
         "create TABLE timeEntries ("
                 + "id integer not null primary key, "
-                + "description TEXT not null"
+                + "description TEXT not null, "
+                + "tagId TEXT"
                 + ");",
 
         "insert into tags (id, name, color) values ('VOID_TAG_ID', 'VOID', '999999');",

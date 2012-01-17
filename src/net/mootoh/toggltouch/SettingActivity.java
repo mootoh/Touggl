@@ -5,15 +5,19 @@ import java.util.List;
 import java.util.Set;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class SettingActivity extends Activity {
     protected static final String API_TOKEN = "toggl_api_token";
@@ -71,6 +75,16 @@ public class SettingActivity extends Activity {
         }
         taskAdapter = new ArrayAdapter<String>(this, R.layout.task_list_item, R.id.task_list_item_label, taskDescriptions);
         taskListView.setAdapter(taskAdapter);
+
+        final Context self = this;
+        taskListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parant, View view, int position, long id) {
+                LinearLayout layout = (LinearLayout)view;
+                TextView textView = (TextView)layout.findViewById(R.id.task_list_item_label);
+                Toast toast = Toast.makeText(self, "clicked " + textView.getText(), Toast.LENGTH_SHORT);
+                toast.show();
+            }
+        });
     }
 
     @Override
@@ -90,6 +104,8 @@ public class SettingActivity extends Activity {
 
         String tagId = extras.getString("tagId");
         if (tagId != null) {
+            intent.removeExtra("tagId"); // Android OS calls onResume multiple times if the app is in background...
+
             Log.d(getClass().getSimpleName(), "tagId:" + tagId);
             TextView messageLabel = (TextView)findViewById(R.id.messageLabel);
             messageLabel.setText("Pick a task for this Tag:" + tagId);
