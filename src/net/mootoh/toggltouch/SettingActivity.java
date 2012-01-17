@@ -74,6 +74,7 @@ public class SettingActivity extends Activity {
         spe.commit();
 
         setContentView(R.layout.setting);
+        renderTasks();
     }
 
     private boolean hasToken() {

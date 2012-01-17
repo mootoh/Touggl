@@ -20,25 +20,30 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.util.Base64;
 import android.util.Log;
 
 public class TogglApi {
-    public TogglApi() {
+    protected static final String API_TOKEN = "toggl_api_token";
+    protected static final String API_TOKEN_KEY = "token";
+    protected static final int    API_TOKEN_RESULT = 1;
+
+    private String apiToken = null;
+
+    public TogglApi(Context context) {
+        SharedPreferences sp = context.getSharedPreferences(SettingActivity.API_TOKEN, 0);
+        apiToken = sp.getString(API_TOKEN_KEY, null);
     }
 
-    public static String getApiToken(String name, String password) {
-        String response = null;
-        try {
-            response = new RequestApiTokenTask().execute(name, password).get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
-        Log.d("TogglApi", "response = " + response);
-        return response;
+    public boolean hasApiToken() {
+        return apiToken != null;
+    }
+
+    public static void requestApiToken(String name, String password, AuthActivity activity) {
+        new RequestApiTokenTask(activity).execute(name, password);
     }
 
     public static Set <String> getTasks(String token) {
@@ -56,6 +61,14 @@ public class TogglApi {
 }
 
 class RequestApiTokenTask extends AsyncTask<String, Integer, String> {
+    private AuthActivity activity;
+    private String apiToken = null;
+    
+    public RequestApiTokenTask(AuthActivity activity) {
+        super();
+        this.activity = activity; 
+    }
+
     @Override
     protected String doInBackground(String... params) {
         URL url = null;
@@ -98,9 +111,9 @@ class RequestApiTokenTask extends AsyncTask<String, Integer, String> {
 
             JSONObject json = new JSONObject(response);
             JSONObject data = json.getJSONObject("data");
-            String api_token = data.getString("api_token");
-            Log.d(getClass().getSimpleName(), "api_token:" + api_token);
-            return api_token;
+            apiToken = data.getString("api_token");
+            Log.d(getClass().getSimpleName(), "api_token:" + apiToken);
+            return apiToken;
         } catch (ProtocolException e) {
             e.printStackTrace();
         } catch (UnsupportedEncodingException e) {
@@ -113,8 +126,17 @@ class RequestApiTokenTask extends AsyncTask<String, Integer, String> {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-
         return null;
+    }
+    @Override
+    protected void onPostExecute(String result) {
+        if (result == null) {
+            // if failed, show the alert toast
+            activity.onLoginFailed();
+        } else {
+            // if successful, stop the progress indicator and proceed to the next activity.
+            activity.onLoginSucceeded(result);
+        }
     }
 }
 
