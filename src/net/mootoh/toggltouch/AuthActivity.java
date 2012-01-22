@@ -21,7 +21,7 @@ public class AuthActivity extends Activity implements ApiTokenResponseHandler {
         loginProgressBar.setVisibility(ProgressBar.INVISIBLE);
 
         submitButton = (Button)findViewById(R.id.authSubmitButton);
-        final EditText emailText = (EditText)findViewById(R.id.nameText);
+        final EditText emailText = (EditText)findViewById(R.id.emailText);
         final EditText passwordText = (EditText)findViewById(R.id.passwordText);
         final AuthActivity self = this;
 

@@ -9,9 +9,10 @@
         android:text="@string/username" />
 
     <EditText
-        android:id="@+id/nameText"
+        android:id="@+id/emailText"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content"
+        android:inputType="textEmailAddress" >
 
         <requestFocus />
     </EditText>
@@ -38,7 +39,7 @@
             android:id="@+id/authSubmitButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Go" />
+            android:text="@string/goAuth" />
 
         <ProgressBar
             android:id="@+id/loginProgressBar"

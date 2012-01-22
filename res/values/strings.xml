@@ -5,5 +5,6 @@
     <string name="app_name">TogglTouch</string>
     <string name="username">Email</string>
     <string name="password">Password</string>
+    <string name="goAuth">Go</string>
 
 </resources>
