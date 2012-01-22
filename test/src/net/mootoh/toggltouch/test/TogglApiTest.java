@@ -93,6 +93,7 @@ public final class TogglApiTest extends AndroidTestCase {
         Condition cond;
         boolean finished = false;
         boolean succeeded = false;
+        Set<TimeEntry> entries;
 
         public TimeEntriesRequester() {
             lock = new ReentrantLock();
@@ -110,6 +111,7 @@ public final class TogglApiTest extends AndroidTestCase {
 
         @Override
         public void onSucceeded(Set<TimeEntry> ret) {
+            entries = ret;
             for (TimeEntry entry : ret) {
                 Log.d(getClass().getSimpleName(), "entry: " + entry.getDescription());
             }
@@ -135,6 +137,9 @@ public final class TogglApiTest extends AndroidTestCase {
             }
             return false;
         }
+        public Set<TimeEntry> getEntries() {
+            return entries;
+        }
     }
 
     public void testGetTimeEntries() {
@@ -146,6 +151,7 @@ public final class TogglApiTest extends AndroidTestCase {
         TimeEntriesRequester requester = new TimeEntriesRequester();
         api.getTimeEntries(requester);
         assertTrue(requester.waitForCompletion());
-
+        Set<TimeEntry> entries = requester.getEntries();
+        assertEquals(0, entries.size());
     }
 }
