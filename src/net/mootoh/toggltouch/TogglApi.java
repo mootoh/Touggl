@@ -87,6 +87,8 @@ public class TogglApi {
     }
 
     public void getTimeEntries(final TimeEntriesHandler handler) {
+        assert(apiToken != null);
+
         new TimeEntriesTask(apiToken, new JsonHttpResponseHandler() {
             public void onHttpResponse(JSONObject response ) {
                 if (response == null) {
@@ -110,6 +112,14 @@ public class TogglApi {
                 }
             }
         }).execute();
+    }
+
+    public String __debug__getValidEmail() {
+        return context.getString(R.string.valid_email);
+    }
+
+    public String __debug__getValidPassword() {
+        return context.getString(R.string.valid_password);
     }
 }
 

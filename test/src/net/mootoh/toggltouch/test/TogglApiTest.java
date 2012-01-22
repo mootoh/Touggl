@@ -15,8 +15,6 @@ import android.util.Log;
 
 public final class TogglApiTest extends AndroidTestCase {
     TogglApi api;
-    private static final String VALID_EMAIL = null;
-    private static final String VALID_PASSWORD = null;
 
     public void setUp() {
         api = new TogglApi(getContext());
@@ -73,7 +71,13 @@ public final class TogglApiTest extends AndroidTestCase {
         }
     }
 
-    public void __testRequestApiToken() throws InterruptedException {
+    private void login() {
+        ApiTokenRequester requester = new ApiTokenRequester();
+        api.requestApiToken(api.__debug__getValidEmail(), api.__debug__getValidPassword(), requester);
+        assertTrue(requester.waitForCompletion());
+    }
+
+    public void testRequestApiToken() throws InterruptedException {
         api.clearToken();
 
         { // invalid
@@ -81,13 +85,7 @@ public final class TogglApiTest extends AndroidTestCase {
             api.requestApiToken("api@mootoh.net", "mootoh", requester);
             assertFalse(requester.waitForCompletion());
         }
-        /*
-        { // valid
-            ApiTokenRequester requester = new ApiTokenRequester();
-            api.requestApiToken(VALID_EMAIL, VALID_PASSWORD, requester);
-            assertTrue(requester.waitForCompletion());
-        }
-         */
+        login();
     }
 
     class TimeEntriesRequester implements TimeEntriesHandler {
@@ -140,6 +138,11 @@ public final class TogglApiTest extends AndroidTestCase {
     }
 
     public void testGetTimeEntries() {
+        if (! api.hasToken()) {
+            login();
+        }
+        assert(api.hasToken());
+
         TimeEntriesRequester requester = new TimeEntriesRequester();
         api.getTimeEntries(requester);
         assertTrue(requester.waitForCompletion());
