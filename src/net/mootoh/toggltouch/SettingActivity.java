@@ -26,18 +26,16 @@ public class SettingActivity extends Activity {
     private boolean toClear = false;
     private TimeEntry[] tasks;
     private ArrayAdapter<String> taskAdapter;
+    private TogglApi api;
 
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d(getClass().getSimpleName(), "onCreate");
+        api = new TogglApi(this);
 
         if (toClear) {
-            SharedPreferences sp = getSharedPreferences(SettingActivity.API_TOKEN, 0);
-            SharedPreferences.Editor spe = sp.edit();
-            spe.clear();
-            spe.commit();
+            api.clearToken();
         }
 
         if (! hasToken()) {
@@ -56,15 +54,7 @@ public class SettingActivity extends Activity {
         Button syncButton = (Button)findViewById(R.id.syncButton);
         syncButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                tasks = getTasks();
-                try {
-                    for (TimeEntry entry : tasks) {
-                        pStorage.addTimeEntry(entry);
-                    }
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-                taskAdapter.notifyDataSetChanged();
+                getTasks(pStorage);
             }
         });
 
@@ -118,13 +108,27 @@ public class SettingActivity extends Activity {
             Log.d(getClass().getSimpleName(), "tasks:" + task.getDescription());
     }
 
-    private TimeEntry[] getTasks() {
-        SharedPreferences sp = getSharedPreferences(SettingActivity.API_TOKEN, 0);
-        String token = sp.getString(API_TOKEN_KEY, null);
-        Set <TimeEntry> taskSet = TogglApi.getTimeEntries(token);
-        TimeEntry[] tasks = new TimeEntry[taskSet.size()];
-        taskSet.toArray(tasks);
-        return tasks;
+    private TimeEntry[] getTasks(final PersistentStorage pStorage) {
+        api.getTimeEntries(new TimeEntriesHandler() {
+            public void onSucceeded(Set<TimeEntry> taskSet) {
+                tasks = new TimeEntry[taskSet.size()];
+                taskSet.toArray(tasks);
+
+                try {
+                    for (TimeEntry entry : tasks) {
+                        pStorage.addTimeEntry(entry);
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                taskAdapter.notifyDataSetChanged();
+            }
+
+            public void onFailed() {
+                Log.d(getClass().getSimpleName(), "failed in retrieving task entries");
+            }
+        });
+        return null;
     }
 
     @Override

@@ -12,7 +12,6 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -32,168 +31,192 @@ public class TogglApi {
     protected static final int    API_TOKEN_RESULT = 1;
 
     private String apiToken = null;
+    private Context context;
 
-    public TogglApi(Context context) {
+    public TogglApi(final Context context) {
+        this.context = context;
+
         SharedPreferences sp = context.getSharedPreferences(SettingActivity.API_TOKEN, 0);
         apiToken = sp.getString(API_TOKEN_KEY, null);
     }
 
-    public boolean hasApiToken() {
+    public boolean hasToken() {
         return apiToken != null;
     }
 
-    public static void requestApiToken(String name, String password, AuthActivity activity) {
-        new RequestApiTokenTask(activity).execute(name, password);
+    public void clearToken() {
+        SharedPreferences sp = context.getSharedPreferences(SettingActivity.API_TOKEN, 0);
+        SharedPreferences.Editor spe = sp.edit();
+        spe.clear();
+        spe.commit();
+        apiToken = null;
     }
 
-    public static Set <TimeEntry> getTimeEntries(String token) {
-        Set <TimeEntry> response = null;
+    public void requestApiToken(String email, String password, final ApiTokenResponseHandler tokenHandler) {
         try {
-            response = new TimeEntriesTask().execute(token).get();
-        } catch (InterruptedException e) {
+            new RequestApiTokenTask(email, password, new JsonHttpResponseHandler() {
+                public void onHttpResponse(JSONObject response) {
+                    if (response == null) {
+                        tokenHandler.onFailed();
+                        return;
+                    }
+
+                    try {
+                        apiToken = response.getJSONObject("data").getString("api_token");
+                        if (apiToken == null) {
+                            tokenHandler.onFailed();
+                            return;
+                        }
+
+                        SharedPreferences sp = context.getSharedPreferences(SettingActivity.API_TOKEN, 0);
+                        SharedPreferences.Editor spe = sp.edit();
+                        spe.putString(SettingActivity.API_TOKEN_KEY, apiToken);
+                        spe.commit();
+
+                        tokenHandler.onSucceeded();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        tokenHandler.onFailed();
+                    }
+                }
+            }).execute();
+        } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
+            tokenHandler.onFailed();
         }
-        Log.d("TogglApi", "response = " + response);
-        return response;
+    }
+
+    public void getTimeEntries(final TimeEntriesHandler handler) {
+        new TimeEntriesTask(apiToken, new JsonHttpResponseHandler() {
+            public void onHttpResponse(JSONObject response ) {
+                if (response == null) {
+                    handler.onFailed();
+                    return;
+                }
+                try {
+                    JSONArray data = response.getJSONArray("data");
+                    Set <TimeEntry> entries = new HashSet<TimeEntry>(data.length());
+                    for (int i=0; i<data.length(); i++) {
+                        JSONObject obj = (JSONObject)data.get(i);
+                        int id = obj.getInt("id");
+                        String description = obj.getString("description");
+                        TimeEntry entry = new TimeEntry(id, description);
+                        entries.add(entry);
+                    }
+                    handler.onSucceeded(entries);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    handler.onFailed();
+                }
+            }
+        }).execute();
     }
 }
 
-class RequestApiTokenTask extends AsyncTask<String, Integer, String> {
-    private AuthActivity activity;
-    private String apiToken = null;
-    
-    public RequestApiTokenTask(AuthActivity activity) {
-        super();
-        this.activity = activity; 
+class JsonHttpReequestTask extends AsyncTask<String, Integer, JSONObject> {
+    final JsonHttpResponseHandler handler;
+    HttpsURLConnection conn;
+
+    public JsonHttpReequestTask(final JsonHttpResponseHandler handler) {
+        this.handler = handler;
+    }
+
+    protected void openConnection(URL url) throws IOException {
+        conn = (HttpsURLConnection)url.openConnection();
+        conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+    }
+
+    protected void setAuth(String credential) {
+        conn.setRequestProperty("Authorization", "Basic " + credential);
     }
 
     @Override
-    protected String doInBackground(String... params) {
-        URL url = null;
+    protected JSONObject doInBackground(String... params) {
+        assert(conn != null);
 
+        JSONObject result = null;
         try {
-            url = new URL("https://www.toggl.com/api/v6/sessions.json");
+            InputStream in = conn.getInputStream();
+            InputStreamReader ir = new InputStreamReader(in);
+            BufferedReader br = new BufferedReader(ir);
+            String response = "";
+            String buf = br.readLine();
+            while (buf != null) {
+                response += buf;
+                buf = br.readLine();
+            }
+            result = new JSONObject(response);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        handler.onHttpResponse(result);
+        return result;
+    }
+};
 
-            String name = params[0];
-            String password = params[1];
+class RequestApiTokenTask extends JsonHttpReequestTask {
+    String credential;
 
-            String credential = "email=" + URLEncoder.encode(name, "UTF-8") +
-                    "&password=" + URLEncoder.encode(password, "UTF-8");
+    public RequestApiTokenTask(String email, String password, JsonHttpResponseHandler handler) throws UnsupportedEncodingException {
+        super(handler);
+        credential = "email=" + URLEncoder.encode(email, "UTF-8") + "&password=" + URLEncoder.encode(password, "UTF-8");
+    }
 
-            HttpsURLConnection conn = (HttpsURLConnection)url.openConnection();
+    @Override
+    protected JSONObject doInBackground(String... params) {
+        try {
+            URL url = new URL("https://www.toggl.com/api/v6/sessions.json");
+            openConnection(url);
+
             conn.setDoOutput(true);
-
             conn.setRequestMethod("POST");
             conn.setChunkedStreamingMode(0);
-            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 
             DataOutputStream wr = new DataOutputStream(conn.getOutputStream());
             wr.writeBytes(credential);
             wr.flush();
             wr.close();
-
-            int responseCode = conn.getResponseCode();
-            Log.d(getClass().getSimpleName(), "responseCode=" + responseCode);
-            Log.d(getClass().getSimpleName(), "method = " + conn.getRequestMethod());
-
-            InputStream in = conn.getInputStream();
-
-            InputStreamReader ir = new InputStreamReader(in);
-            BufferedReader br = new BufferedReader(ir);
-            String response = "";
-            String buf = br.readLine();
-            while (buf != null) {
-                response += buf;
-                buf = br.readLine();
-            }
-
-            JSONObject json = new JSONObject(response);
-            JSONObject data = json.getJSONObject("data");
-            apiToken = data.getString("api_token");
-            Log.d(getClass().getSimpleName(), "api_token:" + apiToken);
-            return apiToken;
         } catch (ProtocolException e) {
             e.printStackTrace();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
+            return null;
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (JSONException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            return null;
         }
-        return null;
-    }
-    @Override
-    protected void onPostExecute(String result) {
-        if (result == null) {
-            // if failed, show the alert toast
-            activity.onLoginFailed();
-        } else {
-            // if successful, stop the progress indicator and proceed to the next activity.
-            activity.onLoginSucceeded(result);
-        }
+
+        return super.doInBackground(params);
     }
 }
 
-class TimeEntriesTask extends AsyncTask<String, Integer, Set <TimeEntry> > {
-    @Override
-    protected Set<TimeEntry> doInBackground(String... params) {
-        URL url = null;
+class TimeEntriesTask extends JsonHttpReequestTask {
+    final String credential;
 
+    public TimeEntriesTask(String token, final JsonHttpResponseHandler jsonHandler) {
+        super(jsonHandler);
+
+        String part = token + ":api_token";
+        credential = Base64.encodeToString(part.getBytes(), Base64.DEFAULT);
+        Log.d(getClass().getSimpleName(), "cred: " + credential);
+    }
+
+    @Override
+    protected JSONObject doInBackground(String... params) {
+        URL url;
         try {
             url = new URL("https://www.toggl.com/api/v6/time_entries.json");
-
-            String credential = params[0] + ":api_token";
-            credential = Base64.encodeToString(credential.getBytes(), Base64.DEFAULT);
-
-            HttpsURLConnection conn = (HttpsURLConnection)url.openConnection();
-            conn.setChunkedStreamingMode(0);
-            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            conn.setRequestProperty("Authorization", "Basic " + credential);
-
-            int responseCode = conn.getResponseCode();
-            Log.d(getClass().getSimpleName(), "responseCode=" + responseCode);
-
-            InputStream in = conn.getInputStream();
-            InputStreamReader ir = new InputStreamReader(in);
-            BufferedReader br = new BufferedReader(ir);
-            String response = "";
-            String buf = br.readLine();
-            while (buf != null) {
-                response += buf;
-                buf = br.readLine();
-            }
-
-            JSONObject json = new JSONObject(response);
-            JSONArray data = json.getJSONArray("data");
-            Set <TimeEntry> ret = new HashSet<TimeEntry>(data.length());
-            for (int i=0; i<data.length(); i++) {
-                JSONObject obj = (JSONObject)data.get(i);
-                int id = obj.getInt("id");
-                String description = obj.getString("description");
-                TimeEntry entry = new TimeEntry(id, description);
-                ret.add(entry);
-            }
-
-            return ret;
-        } catch (ProtocolException e) {
-            e.printStackTrace();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            openConnection(url);
         } catch (MalformedURLException e) {
             e.printStackTrace();
+            return null;
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (JSONException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            return null;
         }
+        conn.setChunkedStreamingMode(0);
+        setAuth(credential);
 
-        return null;
+        return super.doInBackground(params);
     }
 }
