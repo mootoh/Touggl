@@ -1,6 +1,8 @@
 package net.mootoh.toggltouch;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -51,9 +53,10 @@ public class TimeEntry {
         JSONObject data = new JSONObject();
         data.put("duration", duration);
         data.put("billable", billable);
-//        Date startDate = new Date();
-//        json.put("startDate", startDate.toString());
-        data.put("start", "2012-01-21T16:19:45+02:00");
+        java.text.DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss+0000");
+        format.setTimeZone(TimeZone.getTimeZone("UTC"));
+        String date = format.format(new Date());
+        data.put("start", date);
         data.put("created_with", created_with);
         data.put("description", description);
 
