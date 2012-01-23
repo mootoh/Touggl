@@ -52,19 +52,19 @@ public class TogglApi {
         apiToken = null;
     }
 
-    public void requestApiToken(String email, String password, final ApiTokenResponseHandler tokenHandler) {
+    public void requestApiToken(String email, String password, final ApiResponseDelegate<String> delegate) {
         try {
             new RequestApiTokenTask(email, password, new JsonHttpResponseHandler() {
                 public void onHttpResponse(JSONObject response) {
                     if (response == null) {
-                        tokenHandler.onFailed();
+                        delegate.onFailed(null);
                         return;
                     }
 
                     try {
                         apiToken = response.getJSONObject("data").getString("api_token");
                         if (apiToken == null) {
-                            tokenHandler.onFailed();
+                            delegate.onFailed(null);
                             return;
                         }
 
@@ -73,26 +73,25 @@ public class TogglApi {
                         spe.putString(SettingActivity.API_TOKEN_KEY, apiToken);
                         spe.commit();
 
-                        tokenHandler.onSucceeded();
+                        delegate.onSucceeded(apiToken);
                     } catch (JSONException e) {
-                        e.printStackTrace();
-                        tokenHandler.onFailed();
+                        delegate.onFailed(e);
                     }
                 }
             }).execute();
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
-            tokenHandler.onFailed();
+            delegate.onFailed(e);
         }
     }
 
-    public void getTimeEntries(final TimeEntriesHandler handler) {
+    public void getTimeEntries(final ApiResponseDelegate<Set<TimeEntry>> apiResponseDelegate) {
         assert(apiToken != null);
 
         new TimeEntriesTask(apiToken, new JsonHttpResponseHandler() {
-            public void onHttpResponse(JSONObject response ) {
+            public void onHttpResponse(JSONObject response) {
                 if (response == null) {
-                    handler.onFailed();
+                    apiResponseDelegate.onFailed(null);
                     return;
                 }
                 try {
@@ -105,13 +104,28 @@ public class TogglApi {
                         TimeEntry entry = new TimeEntry(id, description);
                         entries.add(entry);
                     }
-                    handler.onSucceeded(entries);
+                    apiResponseDelegate.onSucceeded(entries);
                 } catch (JSONException e) {
-                    e.printStackTrace();
-                    handler.onFailed();
+                    apiResponseDelegate.onFailed(e);
                 }
             }
         }).execute();
+    }
+
+    public void startTimeEntry(final TimeEntry timeEntry, final ApiResponseDelegate<String> apiResponseDelegate) throws JSONException {
+        assert(apiToken != null);
+        String timeEntryJsonString = timeEntry.toJsonString();
+        Log.d("", "timeEntry JSON:" + timeEntryJsonString);
+
+        new StartTimeEntryTask(apiToken, new JsonHttpResponseHandler() {
+            public void onHttpResponse(JSONObject response) {
+                if (response == null) {
+                    apiResponseDelegate.onFailed(null);
+                    return;
+                }
+                apiResponseDelegate.onSucceeded("");
+            }
+        }).execute(timeEntryJsonString);
     }
 
     public String __debug__getValidEmail() {
@@ -133,7 +147,7 @@ class JsonHttpReequestTask extends AsyncTask<String, Integer, JSONObject> {
 
     protected void openConnection(URL url) throws IOException {
         conn = (HttpsURLConnection)url.openConnection();
-        conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        conn.setRequestProperty("Content-Type", "application/json");
     }
 
     protected void setAuth(String credential) {
@@ -160,7 +174,10 @@ class JsonHttpReequestTask extends AsyncTask<String, Integer, JSONObject> {
             e.printStackTrace();
         } catch (JSONException e) {
             e.printStackTrace();
+        } finally {
+            conn.disconnect();
         }
+
         handler.onHttpResponse(result);
         return result;
     }
@@ -226,6 +243,65 @@ class TimeEntriesTask extends JsonHttpReequestTask {
         }
         conn.setChunkedStreamingMode(0);
         setAuth(credential);
+
+        return super.doInBackground(params);
+    }
+}
+
+class StartTimeEntryTask extends JsonHttpReequestTask {
+    final String credential;
+
+    public StartTimeEntryTask(String token, final JsonHttpResponseHandler jsonHandler) {
+        super(jsonHandler);
+
+        String part = token + ":api_token";
+        Log.d("", "token part: " + part);
+        credential = Base64.encodeToString(part.getBytes(), Base64.DEFAULT);
+        Log.d(getClass().getSimpleName(), "cred: " + credential);
+    }
+
+    @Override
+    protected JSONObject doInBackground(String... params) {
+        URL url;
+        try {
+            //            String entry = URLEncoder.encode(params[0], "UTF-8");
+            String entry = params[0];
+            Log.d("", "encoded entry: " + entry);
+
+            url = new URL("https://www.toggl.com/api/v6/time_entries.json");
+            openConnection(url);
+
+            conn.setDoOutput(true);
+            conn.setRequestMethod("POST");
+            conn.setChunkedStreamingMode(0);
+            setAuth(credential);
+
+            DataOutputStream wr = new DataOutputStream(conn.getOutputStream());
+            wr.writeBytes(entry);
+            wr.flush();
+            wr.close();
+
+            Log.d("http", "response code: " + conn.getResponseCode() + ", message:" + conn.getResponseMessage());
+
+            InputStream in = conn.getErrorStream();
+            if (in != null) {
+                InputStreamReader ir = new InputStreamReader(in);
+                BufferedReader br = new BufferedReader(ir);
+                String response = "";
+                String buf = br.readLine();
+                while (buf != null) {
+                    response += buf;
+                    buf = br.readLine();
+                }
+                Log.d("http", "error:" + response);
+            }
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+            return null;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
 
         return super.doInBackground(params);
     }

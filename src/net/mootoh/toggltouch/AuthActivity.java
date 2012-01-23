@@ -8,7 +8,7 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-public class AuthActivity extends Activity implements ApiTokenResponseHandler {
+public class AuthActivity extends Activity implements ApiResponseDelegate<String> {
     Button submitButton;
     ProgressBar loginProgressBar;
 
@@ -51,12 +51,12 @@ public class AuthActivity extends Activity implements ApiTokenResponseHandler {
         });
     }
 
-    public void onSucceeded() {
+    public void onSucceeded(String result) {
         loginProgressBar.setVisibility(ProgressBar.GONE);
         finish();
     }
 
-    public void onFailed() {
+    public void onFailed(Exception e) {
         Toast errorToast = Toast.makeText(getApplicationContext(), "Invalid username/password.", Toast.LENGTH_SHORT);
         errorToast.show();
 

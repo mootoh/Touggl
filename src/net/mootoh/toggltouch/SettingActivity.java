@@ -109,7 +109,7 @@ public class SettingActivity extends Activity {
     }
 
     private TimeEntry[] getTasks(final PersistentStorage pStorage) {
-        api.getTimeEntries(new TimeEntriesHandler() {
+        api.getTimeEntries(new ApiResponseDelegate<Set<TimeEntry>>() {
             public void onSucceeded(Set<TimeEntry> taskSet) {
                 tasks = new TimeEntry[taskSet.size()];
                 taskSet.toArray(tasks);
@@ -124,7 +124,7 @@ public class SettingActivity extends Activity {
                 taskAdapter.notifyDataSetChanged();
             }
 
-            public void onFailed() {
+            public void onFailed(Exception e) {
                 Log.d(getClass().getSimpleName(), "failed in retrieving task entries");
             }
         });

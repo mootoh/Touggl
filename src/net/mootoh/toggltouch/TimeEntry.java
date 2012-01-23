@@ -1,5 +1,10 @@
 package net.mootoh.toggltouch;
 
+import java.util.Date;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class TimeEntry {
     private int id;
     private String description;
@@ -36,5 +41,24 @@ public class TimeEntry {
     public void removeTag(String tagId, PersistentStorage pStorage) {
         pStorage.removeTagFromTimeEntry(tagId, this);
 
+    }
+
+    public String toJsonString() throws JSONException {
+        String duration = "0";
+        String billable = "false";
+        String created_with = "TogglTouch";
+
+        JSONObject data = new JSONObject();
+        data.put("duration", duration);
+        data.put("billable", billable);
+//        Date startDate = new Date();
+//        json.put("startDate", startDate.toString());
+        data.put("start", "2012-01-21T16:19:45+02:00");
+        data.put("created_with", created_with);
+        data.put("description", description);
+
+        JSONObject json = new JSONObject();
+        json.put("time_entry", data);
+        return json.toString();
     }
 }
