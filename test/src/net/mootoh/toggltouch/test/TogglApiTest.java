@@ -13,6 +13,7 @@ import net.mootoh.toggltouch.ApiResponseDelegate;
 import net.mootoh.toggltouch.TimeEntry;
 import net.mootoh.toggltouch.TogglApi;
 import android.test.AndroidTestCase;
+import android.util.Log;
 
 public final class TogglApiTest extends AndroidTestCase {
     TogglApi api;
@@ -100,6 +101,9 @@ public final class TogglApiTest extends AndroidTestCase {
         api.getTimeEntries(requester);
         assertTrue(requester.waitForCompletion());
         Set<TimeEntry> entries = requester.getResult();
+        for (TimeEntry entry : entries) {
+            Log.d("", "entry # " + entry.getId() + ", " + entry.getDescription());
+        }
         assertEquals(3, entries.size());
     }
 

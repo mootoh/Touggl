@@ -94,6 +94,7 @@ public class TogglApi {
                     apiResponseDelegate.onFailed(null);
                     return;
                 }
+                Log.d("response", response.toString());
                 try {
                     JSONArray data = response.getJSONArray("data");
                     Set <TimeEntry> entries = new HashSet<TimeEntry>(data.length());

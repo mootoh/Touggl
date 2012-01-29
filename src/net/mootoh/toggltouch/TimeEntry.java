@@ -63,8 +63,9 @@ public class TimeEntry {
 
         started = new Date();
         data.put("start", dateAsISO8601(started));
-
+        data.put("stop", dateAsISO8601(started));
         data.put("description", description);
+        data.put("duration", -1);
 
         JSONObject json = new JSONObject();
         json.put("time_entry", data);
