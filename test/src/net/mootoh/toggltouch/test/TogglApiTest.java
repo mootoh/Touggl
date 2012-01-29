@@ -103,7 +103,7 @@ public final class TogglApiTest extends AndroidTestCase {
         assertEquals(3, entries.size());
     }
 
-    public void testStartTimeEntry() throws JSONException {
+    public void _testStartTimeEntry() throws JSONException {
         if (! api.hasToken())
             login();
         assert(api.hasToken());
@@ -116,7 +116,7 @@ public final class TogglApiTest extends AndroidTestCase {
         assertNotNull(result);
     }
 
-    public void testStopTimeEntry() throws JSONException {
+    public void testStopTimeEntry() throws JSONException, InterruptedException {
         if (! api.hasToken())
             login();
         assert(api.hasToken());
@@ -132,6 +132,8 @@ public final class TogglApiTest extends AndroidTestCase {
             timeEntry.setId(result.intValue());
         }
 
+        Thread.sleep(6600);
+
         ApiRequester<Integer> requester = new ApiRequester<Integer>();
         api.stopTimeEntry(timeEntry, requester);
         assertTrue(requester.waitForCompletion());
@@ -139,7 +141,7 @@ public final class TogglApiTest extends AndroidTestCase {
         assertNotNull(result);
     }
 
-    public void testDeleteAllTimeEntries() throws JSONException {
+    public void _testDeleteAllTimeEntries() throws JSONException {
         if (! api.hasToken())
             login();
         assert(api.hasToken());

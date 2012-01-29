@@ -11,7 +11,7 @@ public class TimeEntry {
     private int id;
     private String description;
     private String tagId;
-    private String started;
+    private Date started;
 
     private static final String DURATION = "0";
     private static final String BILLABLE = "false";
@@ -61,8 +61,8 @@ public class TimeEntry {
         data.put("billable", BILLABLE);
         data.put("created_with", CREATED_WITH);
 
-        started = dateNowAsISO8601();
-        data.put("start", started);
+        started = new Date();
+        data.put("start", dateAsISO8601(started));
 
         data.put("description", description);
 
@@ -71,18 +71,21 @@ public class TimeEntry {
         return json.toString();
     }
 
-    private String dateNowAsISO8601() {
+    private String dateAsISO8601(Date date) {
         java.text.DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss+0000");
         format.setTimeZone(TimeZone.getTimeZone("UTC"));
-        String date = format.format(new Date());
-        return date;
+        return format.format(date);
     }
 
     public String toStopJsonString() throws JSONException {
         JSONObject data = new JSONObject();
-        data.put("stop", dateNowAsISO8601());
         assert(started != null);
-        data.put("start", started);
+        data.put("start", dateAsISO8601(started));
+        Date stopped = new Date();
+        data.put("stop", dateAsISO8601(stopped));
+        data.put("duration", (stopped.getTime() - started.getTime()) / 1000);
+
+        data.put("description", description);
 
         JSONObject json = new JSONObject();
         json.put("time_entry", data);
