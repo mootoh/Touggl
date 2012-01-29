@@ -9,7 +9,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -119,7 +118,6 @@ public class TogglApi {
     public void startTimeEntry(final TimeEntry timeEntry, final ApiResponseDelegate<Integer> apiResponseDelegate) throws JSONException {
         assert(apiToken != null);
         String timeEntryJsonString = timeEntry.toJsonString();
-        Log.d("", "timeEntry JSON:" + timeEntryJsonString);
 
         new StartTimeEntryTask(apiToken, new JsonHttpResponseHandler() {
             public void onHttpResponse(JSONObject response) {
@@ -213,6 +211,8 @@ class JsonHttpReequestTask extends AsyncTask<String, Integer, JSONObject> {
 
         JSONObject result = null;
         try {
+            Log.d("http", "response code: " + conn.getResponseCode() + ", message:" + conn.getResponseMessage());
+
             InputStream in = conn.getInputStream();
             InputStreamReader ir = new InputStreamReader(in);
             BufferedReader br = new BufferedReader(ir);
@@ -241,23 +241,18 @@ class RequestApiTokenTask extends JsonHttpReequestTask {
 
     public RequestApiTokenTask(String email, String password, JsonHttpResponseHandler handler) throws UnsupportedEncodingException {
         super(handler);
-        credential = "email=" + URLEncoder.encode(email, "UTF-8") + "&password=" + URLEncoder.encode(password, "UTF-8");
+        String part = email + ":" + password;
+        credential = Base64.encodeToString(part.getBytes(), Base64.DEFAULT);
     }
 
     @Override
     protected JSONObject doInBackground(String... params) {
         try {
-            URL url = new URL("https://www.toggl.com/api/v6/sessions.json");
+            URL url = new URL("https://www.toggl.com/api/v6/me.json");
             openConnection(url);
 
-            conn.setDoOutput(true);
-            conn.setRequestMethod("POST");
-            conn.setChunkedStreamingMode(0);
-
-            DataOutputStream wr = new DataOutputStream(conn.getOutputStream());
-            wr.writeBytes(credential);
-            wr.flush();
-            wr.close();
+            conn.setRequestMethod("GET");
+            setAuth(credential);
         } catch (ProtocolException e) {
             e.printStackTrace();
             return null;
@@ -308,9 +303,7 @@ class StartTimeEntryTask extends JsonHttpReequestTask {
         super(jsonHandler);
 
         String part = token + ":api_token";
-        Log.d("", "token part: " + part);
         credential = Base64.encodeToString(part.getBytes(), Base64.DEFAULT);
-        Log.d(getClass().getSimpleName(), "cred: " + credential);
     }
 
     @Override
@@ -318,8 +311,6 @@ class StartTimeEntryTask extends JsonHttpReequestTask {
         URL url;
         try {
             String entry = params[0];
-            Log.d("", "encoded entry: " + entry);
-
             url = new URL("https://www.toggl.com/api/v6/time_entries.json");
             openConnection(url);
 
@@ -333,8 +324,6 @@ class StartTimeEntryTask extends JsonHttpReequestTask {
             wr.flush();
             wr.close();
 
-            Log.d("http", "response code: " + conn.getResponseCode() + ", message:" + conn.getResponseMessage());
-
             InputStream in = conn.getErrorStream();
             if (in != null) {
                 InputStreamReader ir = new InputStreamReader(in);
@@ -345,7 +334,7 @@ class StartTimeEntryTask extends JsonHttpReequestTask {
                     response += buf;
                     buf = br.readLine();
                 }
-                Log.d("http", "error:" + response);
+                Log.e("http", "error:" + response);
             }
         } catch (MalformedURLException e) {
             e.printStackTrace();
