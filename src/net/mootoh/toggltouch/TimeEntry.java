@@ -11,11 +11,17 @@ public class TimeEntry {
     private int id;
     private String description;
     private String tagId;
+    private String started;
+
+    private static final String DURATION = "0";
+    private static final String BILLABLE = "false";
+    private static final String CREATED_WITH = "TogglTouch";
 
     public TimeEntry(int id, String description) {
         this.id = id;
         this.description = description;
         this.tagId = null;
+        this.started = null;
     }
 
     public TimeEntry(int id, String description, String tagId) {
@@ -32,6 +38,10 @@ public class TimeEntry {
         return id;
     }
 
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public String getTagId() {
         return tagId;
     }
@@ -46,19 +56,33 @@ public class TimeEntry {
     }
 
     public String toJsonString() throws JSONException {
-        String duration = "0";
-        String billable = "false";
-        String created_with = "TogglTouch";
-
         JSONObject data = new JSONObject();
-        data.put("duration", duration);
-        data.put("billable", billable);
+        data.put("duration", DURATION);
+        data.put("billable", BILLABLE);
+        data.put("created_with", CREATED_WITH);
+
+        started = dateNowAsISO8601();
+        data.put("start", started);
+
+        data.put("description", description);
+
+        JSONObject json = new JSONObject();
+        json.put("time_entry", data);
+        return json.toString();
+    }
+
+    private String dateNowAsISO8601() {
         java.text.DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss+0000");
         format.setTimeZone(TimeZone.getTimeZone("UTC"));
         String date = format.format(new Date());
-        data.put("start", date);
-        data.put("created_with", created_with);
-        data.put("description", description);
+        return date;
+    }
+
+    public String toStopJsonString() throws JSONException {
+        JSONObject data = new JSONObject();
+        data.put("stop", dateNowAsISO8601());
+        assert(started != null);
+        data.put("start", started);
 
         JSONObject json = new JSONObject();
         json.put("time_entry", data);

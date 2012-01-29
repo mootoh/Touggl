@@ -1,5 +1,6 @@
 package net.mootoh.toggltouch.test;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -108,10 +109,56 @@ public final class TogglApiTest extends AndroidTestCase {
         assert(api.hasToken());
 
         TimeEntry timeEntry = new TimeEntry(1, "hoge");
-        ApiRequester<String> requester = new ApiRequester<String>();
+        ApiRequester<Integer> requester = new ApiRequester<Integer>();
         api.startTimeEntry(timeEntry, requester);
         assertTrue(requester.waitForCompletion());
-        String result = requester.getResult();
-        assertEquals("", result);
+        Integer result = requester.getResult();
+        assertNotNull(result);
+    }
+
+    public void testStopTimeEntry() throws JSONException {
+        if (! api.hasToken())
+            login();
+        assert(api.hasToken());
+
+        TimeEntry timeEntry = new TimeEntry(1, "timeEntry to be stopped");
+        {
+            ApiRequester<Integer> requester = new ApiRequester<Integer>();
+            api.startTimeEntry(timeEntry, requester);
+            assertTrue(requester.waitForCompletion());
+            Integer result = requester.getResult();
+            assertNotNull(result);
+
+            timeEntry.setId(result.intValue());
+        }
+
+        ApiRequester<Integer> requester = new ApiRequester<Integer>();
+        api.stopTimeEntry(timeEntry, requester);
+        assertTrue(requester.waitForCompletion());
+        Integer result = requester.getResult();
+        assertNotNull(result);
+    }
+
+    public void testDeleteAllTimeEntries() throws JSONException {
+        if (! api.hasToken())
+            login();
+        assert(api.hasToken());
+
+        ApiRequester<Set<TimeEntry>> getRequester = new ApiRequester<Set<TimeEntry>>();
+        api.getTimeEntries(getRequester);
+        assertTrue(getRequester.waitForCompletion());
+        Set<TimeEntry> entries = getRequester.getResult();
+
+        Set <ApiRequester<Boolean>> deleteRequesters = new HashSet <ApiRequester<Boolean>>();
+        for (TimeEntry timeEntry : entries) {
+            ApiRequester<Boolean> requester = new ApiRequester<Boolean>();
+            deleteRequesters.add(requester);
+            api.deleteTimeEntry(timeEntry, requester);
+        }
+        for (ApiRequester<Boolean> requester : deleteRequesters) {
+            assertTrue(requester.waitForCompletion());
+            Boolean result = requester.getResult();
+            assertTrue(result.booleanValue());
+        }
     }
 }
