@@ -1,6 +1,9 @@
 package net.mootoh.toggltouch;
 
+import org.json.JSONException;
+
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.nfc.NfcAdapter;
 import android.os.Bundle;
@@ -9,11 +12,6 @@ import android.widget.Toast;
 
 
 public class TagTouchActivity extends Activity {
-    final String TAG;
-
-    public TagTouchActivity() {
-        TAG = getClass().getSimpleName();
-    }
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -28,33 +26,64 @@ public class TagTouchActivity extends Activity {
         final String tagId = getTagId(intent);
         if (tagId == null)
             return;
-
-        PersistentStorage pStorage = new PersistentStorage(this);
+/*
+ * tmp 
+        final TogglTouchProvider pStorage = new TogglTouchProvider(this);
         if (pStorage.isBrandNewTag(tagId)) {
-            Intent newTagIntent = new Intent();
-            newTagIntent.putExtra("tagId", tagId);
-            newTagIntent.setClass(this, SettingActivity.class);
-            startActivity(newTagIntent);
-            finish();
+            startSettingActivityWithTagId(tagId);
             return;
         }
 
-        Tag currentTag = pStorage.currentTag();
-        if (currentTag != null && currentTag.id.equals(tagId)) {
-//                pStorage.stopCurrentTag();
-            Toast.makeText(this, currentTag.name + " end.", Toast.LENGTH_SHORT).show();
-        } else {
-//                pStorage.startTag(tagId);
-            Toast.makeText(this, pStorage.getTagName(tagId) + " start.", Toast.LENGTH_SHORT).show();
-        }
+        TogglApi api = new TogglApi(this);
+        final TimeEntry timeEntry = pStorage.currentTimeEntry();
+        final Context self = this;
+        if (timeEntry != null && timeEntry.getTagId().equals(tagId)) {
+            pStorage.stopCurrentTimeEntry();
+            try {
+                api.stopTimeEntry(timeEntry, new ApiResponseDelegate<Integer>() {
+                    public void onSucceeded(Integer result) {
+                        Toast.makeText(self, timeEntry.getDescription() + " end.", Toast.LENGTH_SHORT).show();
+                    }
 
+                    public void onFailed(Exception e) {
+                        // TODO Auto-generated method stub
+                    }
+                });
+            } catch (JSONException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        } else {
+            try {
+                api.startTimeEntry(timeEntry, new ApiResponseDelegate<Integer>() {
+                    public void onSucceeded(Integer result) {
+                        pStorage.startTimeEntry(timeEntry);
+                        Toast.makeText(self, timeEntry.getDescription() + " start.", Toast.LENGTH_SHORT).show();
+                    }
+
+                    public void onFailed(Exception e) {
+                    }
+                });
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+*/
+        finish();
+    }
+
+    private void startSettingActivityWithTagId(final String tagId) {
+        Intent newTagIntent = new Intent();
+        newTagIntent.putExtra("tagId", tagId);
+        newTagIntent.setClass(this, SettingActivity.class);
+        startActivity(newTagIntent);
         finish();
     }
 
     private String getTagId(Intent intent) {
         android.nfc.Tag tag = (android.nfc.Tag)intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
         if (tag == null) {
-            Log.w(TAG, "Tag not found");
+            Log.w(getClass().getSimpleName(), "Tag not found");
             return null;
         }
 
@@ -63,7 +92,7 @@ public class TagTouchActivity extends Activity {
             return null;
 
         final String tagId = getHex(idBytes);
-        Log.w(TAG, "tag id=" + tagId);
+        Log.w(getClass().getSimpleName(), "tag id=" + tagId);
         return tagId;
     }
 

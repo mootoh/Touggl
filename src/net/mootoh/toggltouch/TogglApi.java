@@ -82,7 +82,7 @@ public class TogglApi {
         }
     }
 
-    public void getTimeEntries(final ApiResponseDelegate<TimeEntry[]> apiResponseDelegate) {
+    public void getTimeEntries(final ApiResponseDelegate<Task[]> apiResponseDelegate) {
         assert(apiToken != null);
 
         new TimeEntriesTask(apiToken, new JsonHttpResponseHandler() {
@@ -93,12 +93,12 @@ public class TogglApi {
                 }
                 try {
                     JSONArray data = response.getJSONArray("data");
-                    TimeEntry[] entries = new TimeEntry[data.length()];
+                    Task[] entries = new Task[data.length()];
                     for (int i=0; i<data.length(); i++) {
                         JSONObject obj = (JSONObject)data.get(i);
                         String description = obj.getString("description");
                         int id = obj.getInt("id");
-                        entries[i] = new TimeEntry(id, description);
+                        entries[i] = new Task(id, description);
                     }
                     apiResponseDelegate.onSucceeded(entries);
                 } catch (JSONException e) {
@@ -111,7 +111,7 @@ public class TogglApi {
     /**
      * returns an id of started TimeEntry.
      */
-    public void startTimeEntry(final TimeEntry timeEntry, final ApiResponseDelegate<Integer> apiResponseDelegate) throws JSONException {
+    public void startTimeEntry(final Task timeEntry, final ApiResponseDelegate<Integer> apiResponseDelegate) throws JSONException {
         assert(apiToken != null);
         String timeEntryJsonString = timeEntry.toJsonString();
 
@@ -135,7 +135,7 @@ public class TogglApi {
         }).execute(timeEntryJsonString);
     }
 
-    public void stopTimeEntry(TimeEntry timeEntry, final ApiResponseDelegate<Integer> apiResponseDelegate) throws JSONException {
+    public void stopTimeEntry(Task timeEntry, final ApiResponseDelegate<Integer> apiResponseDelegate) throws JSONException {
         assert(apiToken != null);
         String timeEntryJsonString = timeEntry.toStopJsonString();
         Log.d("", "timeEntry JSON:" + timeEntryJsonString);
@@ -160,7 +160,7 @@ public class TogglApi {
         }).execute(timeEntryJsonString, new Integer(timeEntry.getId()).toString());
     }
 
-    public void deleteTimeEntry(TimeEntry timeEntry, final ApiResponseDelegate<Boolean> apiResponseDelegate) throws JSONException {
+    public void deleteTimeEntry(Task timeEntry, final ApiResponseDelegate<Boolean> apiResponseDelegate) throws JSONException {
         assert(apiToken != null);
         
         new DeleteTimeEntryTask(apiToken, new JsonHttpResponseHandler() {

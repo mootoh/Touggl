@@ -10,7 +10,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.json.JSONException;
 
 import net.mootoh.toggltouch.ApiResponseDelegate;
-import net.mootoh.toggltouch.TimeEntry;
+import net.mootoh.toggltouch.Task;
 import net.mootoh.toggltouch.TogglApi;
 import android.test.AndroidTestCase;
 import android.util.Log;
@@ -97,11 +97,11 @@ public final class TogglApiTest extends AndroidTestCase {
             login();
         assert(api.hasToken());
 
-        ApiRequester<TimeEntry[]> requester = new ApiRequester<TimeEntry[]>();
+        ApiRequester<Task[]> requester = new ApiRequester<Task[]>();
         api.getTimeEntries(requester);
         assertTrue(requester.waitForCompletion());
-        TimeEntry[] entries = requester.getResult();
-        for (TimeEntry entry : entries) {
+        Task[] entries = requester.getResult();
+        for (Task entry : entries) {
             Log.d("", "entry:" + entry.getDescription());
         }
 //        assertEquals(3, entries.length);
@@ -112,7 +112,7 @@ public final class TogglApiTest extends AndroidTestCase {
             login();
         assert(api.hasToken());
 
-        TimeEntry timeEntry = new TimeEntry(1, "hoge");
+        Task timeEntry = new Task(1, "hoge");
         ApiRequester<Integer> requester = new ApiRequester<Integer>();
         api.startTimeEntry(timeEntry, requester);
         assertTrue(requester.waitForCompletion());
@@ -125,7 +125,7 @@ public final class TogglApiTest extends AndroidTestCase {
             login();
         assert(api.hasToken());
 
-        TimeEntry timeEntry = new TimeEntry(1, "timeEntry to be stopped");
+        Task timeEntry = new Task(1, "timeEntry to be stopped");
         {
             ApiRequester<Integer> requester = new ApiRequester<Integer>();
             api.startTimeEntry(timeEntry, requester);
@@ -150,13 +150,13 @@ public final class TogglApiTest extends AndroidTestCase {
             login();
         assert(api.hasToken());
 
-        ApiRequester<TimeEntry[]> getRequester = new ApiRequester<TimeEntry[]>();
+        ApiRequester<Task[]> getRequester = new ApiRequester<Task[]>();
         api.getTimeEntries(getRequester);
         assertTrue(getRequester.waitForCompletion());
-        TimeEntry[] entries = getRequester.getResult();
+        Task[] entries = getRequester.getResult();
 
         Set <ApiRequester<Boolean>> deleteRequesters = new HashSet <ApiRequester<Boolean>>();
-        for (TimeEntry timeEntry : entries) {
+        for (Task timeEntry : entries) {
             ApiRequester<Boolean> requester = new ApiRequester<Boolean>();
             deleteRequesters.add(requester);
             api.deleteTimeEntry(timeEntry, requester);

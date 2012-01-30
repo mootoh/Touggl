@@ -31,6 +31,14 @@ public class AuthActivity extends Activity implements ApiResponseDelegate<String
                 String name = emailText.getText().toString();
                 String password = passwordText.getText().toString();
 
+                TogglApi api = new TogglApi(self);
+
+                /*
+                 * FIXME
+                 */
+                name = api.__debug__getValidEmail();
+                password = api.__debug__getValidPassword();
+
                 if (insufficientLoginForm(name, password)) {
                     Toast errorToast = Toast.makeText(getApplicationContext(), "Enter e-mail and password", Toast.LENGTH_SHORT);
                     errorToast.show();
@@ -42,7 +50,6 @@ public class AuthActivity extends Activity implements ApiResponseDelegate<String
                 loginProgressBar.setVisibility(ProgressBar.VISIBLE);
 
                 // send a request to toggl server to obtain API token
-                TogglApi api = new TogglApi(self);
                 api.requestApiToken(name, password, self);
             }
 

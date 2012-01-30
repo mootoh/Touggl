@@ -24,10 +24,10 @@ public class SettingActivity extends Activity {
     protected static final String API_TOKEN = "toggl_api_token";
     protected static final String API_TOKEN_KEY = "token";
     protected static final int    API_TOKEN_RESULT = 1;
-    private boolean toClear = false;
-    private TimeEntry[] tasks;
+    private Task[] tasks;
     private ArrayAdapter<String> taskAdapter;
     private TogglApi api;
+    private DatabaseHelper dbHelper;
 
     /** Called when the activity is first created. */
     @Override
@@ -35,16 +35,14 @@ public class SettingActivity extends Activity {
         super.onCreate(savedInstanceState);
         api = new TogglApi(this);
 
-        if (toClear)
-            api.clearToken();
-
         if (! hasToken()) {
             android.content.Intent authIntent = new android.content.Intent();
             authIntent.setClass(getApplicationContext(), AuthActivity.class);
             startActivityForResult(authIntent, API_TOKEN_RESULT);
         }
-
-        final PersistentStorage pStorage = new PersistentStorage(this);
+/*
+ * tmp 
+        pStorage = new TogglTouchProvider(this);
         List <TimeEntry> timeEntries = pStorage.getTimeEntries();
         tasks = new TimeEntry[timeEntries.size()];
         timeEntries.toArray(tasks);
@@ -61,19 +59,10 @@ public class SettingActivity extends Activity {
         }
         taskAdapter = new ArrayAdapter<String>(this, R.layout.task_list_item, R.id.task_list_item_label, taskDescriptions);
         taskListView.setAdapter(taskAdapter);
-
-        final Context self = this;
-        taskListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            public void onItemClick(AdapterView<?> parant, View view, int position, long id) {
-                LinearLayout layout = (LinearLayout)view;
-                TextView textView = (TextView)layout.findViewById(R.id.task_list_item_label);
-                Toast toast = Toast.makeText(self, "clicked " + textView.getText(), Toast.LENGTH_SHORT);
-                toast.show();
-            }
-        });
+        */
     }
-
-    private void setupSyncButton(final PersistentStorage pStorage) {
+/*
+    private void setupSyncButton(final TogglTouchProvider pStorage) {
         Button syncButton = (Button)findViewById(R.id.syncButton);
         syncButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -82,12 +71,12 @@ public class SettingActivity extends Activity {
         });
     }
 
-    private void setupClearButton(final PersistentStorage pStorage) {
+    private void setupClearButton(final TogglTouchProvider pStorage) {
         Button clearButton = (Button)findViewById(R.id.clearButton);
         clearButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 try {
-                    pStorage.reset();
+                    dbHelper.reset();
                     runOnUiThread(new Runnable() {
                         public void run() {
                             //                            taskAdapter.clear();
@@ -101,7 +90,7 @@ public class SettingActivity extends Activity {
             }
         });
     }
-
+*/
     @Override
     protected void onResume() {
         super.onResume();
@@ -117,7 +106,7 @@ public class SettingActivity extends Activity {
             return;
         }
 
-        String tagId = extras.getString("tagId");
+        final String tagId = extras.getString("tagId");
         if (tagId != null) {
             intent.removeExtra("tagId"); // Android OS calls onResume multiple times if the app is in background...
 
@@ -125,26 +114,38 @@ public class SettingActivity extends Activity {
             TextView messageLabel = (TextView)findViewById(R.id.messageLabel);
             messageLabel.setText("Pick a task for this Tag:" + tagId);
             renderTasks();
+
+            ListView taskListView = (ListView)findViewById(R.id.taskList);
+            final Context self = this;
+            taskListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                public void onItemClick(AdapterView<?> parant, View view, int position, long id) {
+                    LinearLayout layout = (LinearLayout)view;
+                    TextView textView = (TextView)layout.findViewById(R.id.task_list_item_label);
+                    Toast toast = Toast.makeText(self, "clicked " + textView.getText() + ", id:" + id + ", position:" + position, Toast.LENGTH_SHORT);
+                    toast.show();
+//                    dbHelper.assignTaskForTag(tagId, tasks[position]);
+                }
+            });
         }
     }
 
     private void renderTasks() {
-        for (TimeEntry task: tasks)
+        for (Task task: tasks)
             Log.d(getClass().getSimpleName(), "tasks:" + task.getDescription());
     }
-
-    private TimeEntry[] getTasks(final PersistentStorage pStorage) {
-        api.getTimeEntries(new ApiResponseDelegate<TimeEntry[]>() {
-            public void onSucceeded(TimeEntry[] timeEntries) {
+/*
+    private Task[] getTasks(final TogglTouchProvider pStorage) {
+        api.getTimeEntries(new ApiResponseDelegate<Task[]>() {
+            public void onSucceeded(Task[] timeEntries) {
                 Set <String> descriptions = new HashSet <String>();
-                for (TimeEntry timeEntry : timeEntries)
+                for (Task timeEntry : timeEntries)
                     descriptions.add(timeEntry.getDescription());
 
                 tasks = timeEntries;
 
                 for (String description: descriptions) {
                     try {
-                        pStorage.addTimeEntry(description);
+                        Task.save(description);
                     } catch (SQLException e) {
                         e.printStackTrace();
                     }
@@ -163,7 +164,7 @@ public class SettingActivity extends Activity {
         });
         return null;
     }
-
+*/
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
