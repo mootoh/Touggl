@@ -187,6 +187,20 @@ public final class PersistentStorage {
     public void removeTagFromTimeEntry(String tagId, TimeEntry timeEntry) {
         // TODO Auto-generated method stub
     }
+
+    public TimeEntry currentTimeEntry() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public void stopCurrentTimeEntry() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void startTimeEntry(TimeEntry timeEntry) {
+        // TODO Auto-generated method stub
+    }
 }
 
 final class DatabaseHelper extends SQLiteOpenHelper {
