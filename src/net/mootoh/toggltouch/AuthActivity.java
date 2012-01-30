@@ -1,6 +1,7 @@
 package net.mootoh.toggltouch;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -52,7 +53,9 @@ public class AuthActivity extends Activity implements ApiResponseDelegate<String
     }
 
     public void onSucceeded(String result) {
-        loginProgressBar.setVisibility(ProgressBar.GONE);
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra(SettingActivity.API_TOKEN_KEY, result);
+        setResult(SettingActivity.API_TOKEN_RESULT, resultIntent);
         finish();
     }
 

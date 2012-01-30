@@ -9,8 +9,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
-import java.util.HashSet;
-import java.util.Set;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -51,40 +49,40 @@ public class TogglApi {
         apiToken = null;
     }
 
+    private void setToken(String token) {
+        apiToken = token;
+
+        SharedPreferences sp = context.getSharedPreferences(SettingActivity.API_TOKEN, 0);
+        SharedPreferences.Editor spe = sp.edit();
+        spe.putString(SettingActivity.API_TOKEN_KEY, apiToken);
+        spe.commit();
+    }
+
     public void requestApiToken(String email, String password, final ApiResponseDelegate<String> delegate) {
         try {
             new RequestApiTokenTask(email, password, new JsonHttpResponseHandler() {
-                public void onHttpResponse(JSONObject response) {
+                public void onHttpResponse(JSONObject response) throws JSONException {
                     if (response == null) {
                         delegate.onFailed(null);
                         return;
                     }
 
-                    try {
-                        apiToken = response.getJSONObject("data").getString("api_token");
-                        if (apiToken == null) {
-                            delegate.onFailed(null);
-                            return;
-                        }
-
-                        SharedPreferences sp = context.getSharedPreferences(SettingActivity.API_TOKEN, 0);
-                        SharedPreferences.Editor spe = sp.edit();
-                        spe.putString(SettingActivity.API_TOKEN_KEY, apiToken);
-                        spe.commit();
-
-                        delegate.onSucceeded(apiToken);
-                    } catch (JSONException e) {
-                        delegate.onFailed(e);
+                    String token = response.getJSONObject("data").getString("api_token");
+                    if (token == null) {
+                        delegate.onFailed(null);
+                        return;
                     }
+
+                    setToken(token);
+                    delegate.onSucceeded(token);
                 }
             }).execute();
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
             delegate.onFailed(e);
         }
     }
 
-    public void getTimeEntries(final ApiResponseDelegate<Set<TimeEntry>> apiResponseDelegate) {
+    public void getTimeEntries(final ApiResponseDelegate<TimeEntry[]> apiResponseDelegate) {
         assert(apiToken != null);
 
         new TimeEntriesTask(apiToken, new JsonHttpResponseHandler() {
@@ -93,16 +91,14 @@ public class TogglApi {
                     apiResponseDelegate.onFailed(null);
                     return;
                 }
-                Log.d("response", response.toString());
                 try {
                     JSONArray data = response.getJSONArray("data");
-                    Set <TimeEntry> entries = new HashSet<TimeEntry>(data.length());
+                    TimeEntry[] entries = new TimeEntry[data.length()];
                     for (int i=0; i<data.length(); i++) {
                         JSONObject obj = (JSONObject)data.get(i);
-                        int id = obj.getInt("id");
                         String description = obj.getString("description");
-                        TimeEntry entry = new TimeEntry(id, description);
-                        entries.add(entry);
+                        int id = obj.getInt("id");
+                        entries[i] = new TimeEntry(id, description);
                     }
                     apiResponseDelegate.onSucceeded(entries);
                 } catch (JSONException e) {
@@ -137,14 +133,6 @@ public class TogglApi {
                }
             }
         }).execute(timeEntryJsonString);
-    }
-
-    public String __debug__getValidEmail() {
-        return context.getString(R.string.valid_email);
-    }
-
-    public String __debug__getValidPassword() {
-        return context.getString(R.string.valid_password);
     }
 
     public void stopTimeEntry(TimeEntry timeEntry, final ApiResponseDelegate<Integer> apiResponseDelegate) throws JSONException {
@@ -185,6 +173,14 @@ public class TogglApi {
                apiResponseDelegate.onSucceeded(true);
             }
         }).execute(new Integer(timeEntry.getId()).toString());
+    }
+
+    public String __debug__getValidEmail() {
+        return context.getString(R.string.valid_email);
+    }
+
+    public String __debug__getValidPassword() {
+        return context.getString(R.string.valid_password);
     }
 }
 
@@ -231,7 +227,11 @@ class JsonHttpReequestTask extends AsyncTask<String, Integer, JSONObject> {
             conn.disconnect();
         }
 
-        handler.onHttpResponse(result);
+        try {
+            handler.onHttpResponse(result);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         return result;
     }
 };

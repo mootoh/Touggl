@@ -1,6 +1,7 @@
 package net.mootoh.toggltouch;
 
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -34,9 +35,8 @@ public class SettingActivity extends Activity {
         super.onCreate(savedInstanceState);
         api = new TogglApi(this);
 
-        if (toClear) {
+        if (toClear)
             api.clearToken();
-        }
 
         if (! hasToken()) {
             android.content.Intent authIntent = new android.content.Intent();
@@ -51,12 +51,8 @@ public class SettingActivity extends Activity {
 
         setContentView(R.layout.setting);
 
-        Button syncButton = (Button)findViewById(R.id.syncButton);
-        syncButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                getTasks(pStorage);
-            }
-        });
+        setupSyncButton(pStorage);
+        setupClearButton(pStorage);
 
         ListView taskListView = (ListView)findViewById(R.id.taskList);
         String[] taskDescriptions = new String[tasks.length];
@@ -73,6 +69,35 @@ public class SettingActivity extends Activity {
                 TextView textView = (TextView)layout.findViewById(R.id.task_list_item_label);
                 Toast toast = Toast.makeText(self, "clicked " + textView.getText(), Toast.LENGTH_SHORT);
                 toast.show();
+            }
+        });
+    }
+
+    private void setupSyncButton(final PersistentStorage pStorage) {
+        Button syncButton = (Button)findViewById(R.id.syncButton);
+        syncButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                getTasks(pStorage);
+            }
+        });
+    }
+
+    private void setupClearButton(final PersistentStorage pStorage) {
+        Button clearButton = (Button)findViewById(R.id.clearButton);
+        clearButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                try {
+                    pStorage.reset();
+                    runOnUiThread(new Runnable() {
+                        public void run() {
+                            //                            taskAdapter.clear();
+                            taskAdapter.notifyDataSetChanged();
+                        }
+                    });
+
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
             }
         });
     }
@@ -109,19 +134,27 @@ public class SettingActivity extends Activity {
     }
 
     private TimeEntry[] getTasks(final PersistentStorage pStorage) {
-        api.getTimeEntries(new ApiResponseDelegate<Set<TimeEntry>>() {
-            public void onSucceeded(Set<TimeEntry> taskSet) {
-                tasks = new TimeEntry[taskSet.size()];
-                taskSet.toArray(tasks);
+        api.getTimeEntries(new ApiResponseDelegate<TimeEntry[]>() {
+            public void onSucceeded(TimeEntry[] timeEntries) {
+                Set <String> descriptions = new HashSet <String>();
+                for (TimeEntry timeEntry : timeEntries)
+                    descriptions.add(timeEntry.getDescription());
 
-                try {
-                    for (TimeEntry entry : tasks) {
-                        pStorage.addTimeEntry(entry);
+                tasks = timeEntries;
+
+                for (String description: descriptions) {
+                    try {
+                        pStorage.addTimeEntry(description);
+                    } catch (SQLException e) {
+                        e.printStackTrace();
                     }
-                } catch (SQLException e) {
-                    e.printStackTrace();
                 }
-                taskAdapter.notifyDataSetChanged();
+
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        taskAdapter.notifyDataSetChanged();
+                    }
+                });
             }
 
             public void onFailed(Exception e) {

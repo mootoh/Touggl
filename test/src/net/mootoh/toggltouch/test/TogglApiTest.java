@@ -23,7 +23,7 @@ public final class TogglApiTest extends AndroidTestCase {
         assertNotNull(api);
     }
 
-    public void _testHasApiToken() {
+    public void testHasApiToken() {
         api.clearToken();
         assertFalse(api.hasToken());
     }
@@ -81,7 +81,7 @@ public final class TogglApiTest extends AndroidTestCase {
         assertTrue(requester.waitForCompletion());
     }
 
-    public void _testRequestApiToken() throws InterruptedException {
+    public void testRequestApiToken() throws InterruptedException {
         api.clearToken();
 
         { // invalid
@@ -92,22 +92,22 @@ public final class TogglApiTest extends AndroidTestCase {
         login();
     }
 
-    public void _testGetTimeEntries() {
+    public void testGetTimeEntries() {
         if (! api.hasToken())
             login();
         assert(api.hasToken());
 
-        ApiRequester<Set<TimeEntry>> requester = new ApiRequester<Set<TimeEntry>>();
+        ApiRequester<TimeEntry[]> requester = new ApiRequester<TimeEntry[]>();
         api.getTimeEntries(requester);
         assertTrue(requester.waitForCompletion());
-        Set<TimeEntry> entries = requester.getResult();
+        TimeEntry[] entries = requester.getResult();
         for (TimeEntry entry : entries) {
-            Log.d("", "entry # " + entry.getId() + ", " + entry.getDescription());
+            Log.d("", "entry:" + entry.getDescription());
         }
-        assertEquals(3, entries.size());
+//        assertEquals(3, entries.length);
     }
 
-    public void _testStartTimeEntry() throws JSONException {
+    public void testStartTimeEntry() throws JSONException {
         if (! api.hasToken())
             login();
         assert(api.hasToken());
@@ -145,15 +145,15 @@ public final class TogglApiTest extends AndroidTestCase {
         assertNotNull(result);
     }
 
-    public void _testDeleteAllTimeEntries() throws JSONException {
+    public void testDeleteAllTimeEntries() throws JSONException {
         if (! api.hasToken())
             login();
         assert(api.hasToken());
 
-        ApiRequester<Set<TimeEntry>> getRequester = new ApiRequester<Set<TimeEntry>>();
+        ApiRequester<TimeEntry[]> getRequester = new ApiRequester<TimeEntry[]>();
         api.getTimeEntries(getRequester);
         assertTrue(getRequester.waitForCompletion());
-        Set<TimeEntry> entries = getRequester.getResult();
+        TimeEntry[] entries = getRequester.getResult();
 
         Set <ApiRequester<Boolean>> deleteRequesters = new HashSet <ApiRequester<Boolean>>();
         for (TimeEntry timeEntry : entries) {

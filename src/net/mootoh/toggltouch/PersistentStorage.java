@@ -2,12 +2,8 @@ package net.mootoh.toggltouch;
 
 import java.sql.SQLException;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
 import java.util.List;
-import java.util.SimpleTimeZone;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -21,8 +17,6 @@ import android.util.Log;
 
 public final class PersistentStorage {
     DatabaseHelper databaseHelper;
-    final static public String VOID_TAG_ID   = "VOID";
-    final static public String VOID_TAG_NAME = "VOID";
 
     public PersistentStorage(Context context) {
         databaseHelper = new DatabaseHelper(context);
@@ -93,31 +87,7 @@ public final class PersistentStorage {
         SQLiteDatabase db = databaseHelper.getWritableDatabase();
         db.delete("tags", null, null);
         db.delete("touches", null, null);
-
-        addVoidTag(db);
-        addVoidTouch(db);
-    }
-
-    private void addVoidTag(SQLiteDatabase db) throws SQLException {
-        // void tag is permanent
-        ContentValues values = new ContentValues();
-        values.put("id", VOID_TAG_ID);
-        values.put("name", VOID_TAG_NAME);
-        values.put("color", "#999999");
-
-        long rowId = db.insert("tags", null, values);
-        if (rowId <= 0)
-            throw new SQLException("Faild to insert void tag");
-    }
-
-    private void addVoidTouch(SQLiteDatabase db) throws SQLException {
-        // void touch is permanent
-        ContentValues values = new ContentValues();
-        values.put("tagId", VOID_TAG_ID);
-
-        long rowId = db.insert("touches", null, values);
-        if (rowId <= 0)
-            throw new SQLException("Faild to insert void touch");
+        db.delete("timeEntries", null, null);
     }
 
     public Tag[] getTags() {
@@ -138,113 +108,37 @@ public final class PersistentStorage {
         return ret;
     }
 
-    private void addTouch(String tagId) throws SQLException {
-        ContentValues values = new ContentValues();
-        values.put("tagId", tagId);
-
-        SQLiteDatabase db = databaseHelper.getWritableDatabase();
-        long rowId = db.insert("touches", null, values);
-        if (rowId <= 0)
-            throw new SQLException("Faild to insert row for " + tagId);
-    }
-
-    public void startTag(String tagId) throws SQLException {
-        addTouch(tagId);
-    }
-
-    public void stopCurrentTag() throws SQLException {
-        addTouch(VOID_TAG_ID);
-    }
-
-    public ArrayList <String[]> getHistoryAll() throws Exception {
-        final String query = "SELECT * FROM touches t1 INNER JOIN tags t2 ON t1.tagId=t2.id ORDER BY t1.touchedAt ASC";
-
-        SQLiteDatabase db = databaseHelper.getReadableDatabase();
-        Cursor cursor = db.rawQuery(query, null);
-        ArrayList <String[]> history = new ArrayList<String[]>();
-
-        cursor.moveToFirst();
-        String curTagId = cursor.getString(cursor.getColumnIndex("tagId"));
-        String curName  = cursor.getString(cursor.getColumnIndex("name"));
-        Date   curDate  = parseDate(cursor.getString(cursor.getColumnIndex("touchedAt")));
-        String curColor = cursor.getString(cursor.getColumnIndex("color"));
-
-        while (cursor.moveToNext()) {
-            String tagId = cursor.getString(cursor.getColumnIndex("tagId"));
-            if (curTagId == tagId)
-                throw new Exception("Logic Error: a tagId should not be consequential");
-
-            String name = cursor.getString(cursor.getColumnIndex("name"));
-            Date date   = parseDate(cursor.getString(cursor.getColumnIndex("touchedAt")));
-            String elapsed = getElapsedTime(curDate, date);
-            String color= cursor.getString(cursor.getColumnIndex("color"));
-            if (color.charAt(0) != '#')
-                color = '#' + color;
-
-            if (! curTagId.equals(VOID_TAG_ID)) {
-                String[] pair = {curName, elapsed, curColor};
-                history.add(pair);
-            }
-
-            curTagId = tagId;
-            curName  = name;
-            curDate  = date;
-            curColor = color;
-        }
-
-        cursor.close();
-        Collections.reverse(history);
-
-        return history;
-    }
-
-    private Date parseDate(String dateString) throws ParseException {
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        SimpleTimeZone tz = new SimpleTimeZone(0, "GMT");
-        formatter.setTimeZone(tz);
-        return formatter.parse(dateString);
-    }
-
-    private String getElapsedTime(java.util.Date from, java.util.Date to) {
-        long toTime = to.getTime();
-        long fromTime  = from.getTime();
-        long elapsed = (toTime - fromTime);
-
-        long elapsedHour = elapsed / (60*60*1000);
-        elapsed -= elapsedHour * (60*60*1000);
-
-        long elapsedMin = elapsed / (60*1000);
-        elapsed -= elapsedMin * 60*1000;
-        long elapsedSec = elapsed / 1000;
-
-        return String.format("%02d:%02d:%02d", elapsedHour, elapsedMin, elapsedSec);
-    }
-
     public void addTimeEntry(JSONObject json) throws SQLException, JSONException {
-        int id;
         String description;
-        id = json.getInt("id");
         description = json.getString("description");
 
         ContentValues values = new ContentValues();
-        values.put("id", id);
         values.put("description", description);
 
         SQLiteDatabase db = databaseHelper.getWritableDatabase();
         long rowId = db.insert("timeEntries", null, values);
         if (rowId <= 0)
-            throw new SQLException("Faild to insert row for id:" + id + ", description:" + description);
+            throw new SQLException("Faild to insert row for description:" + description);
+    }
+
+    public void addTimeEntry(String description) throws SQLException {
+        ContentValues values = new ContentValues();
+        values.put("description", description);
+
+        SQLiteDatabase db = databaseHelper.getWritableDatabase();
+        long rowId = db.insert("timeEntries", null, values);
+        if (rowId <= 0)
+            throw new SQLException("Faild to insert row for description:" + description);
     }
 
     public void addTimeEntry(TimeEntry entry) throws SQLException {
         ContentValues values = new ContentValues();
-        values.put("id", entry.getId());
         values.put("description", entry.getDescription());
 
         SQLiteDatabase db = databaseHelper.getWritableDatabase();
         long rowId = db.insert("timeEntries", null, values);
         if (rowId <= 0)
-            throw new SQLException("Faild to insert row for id:" + entry.getId() + ", description:" + entry.getDescription());
+            throw new SQLException("Faild to insert row for description:" + entry.getDescription());
     }
 
     public List <TimeEntry> getTimeEntries() {
@@ -304,13 +198,8 @@ final class DatabaseHelper extends SQLiteOpenHelper {
                 + "name TEXT not null, "
                 + "color TEXT"
                 + ");",
-        "create TABLE touches ("
-                + "tagId text not null, "
-                + "touchedAt DATETIME DEFAULT CURRENT_TIMESTAMP PRIMARY KEY"
-                + ");",
         "create TABLE timeEntries ("
-                + "id integer not null primary key, "
-                + "description TEXT not null, "
+                + "description TEXT not null primary key, "
                 + "tagId TEXT"
                 + ");",
 

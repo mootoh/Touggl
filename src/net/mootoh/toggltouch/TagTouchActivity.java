@@ -1,7 +1,5 @@
 package net.mootoh.toggltouch;
 
-import java.sql.SQLException;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.nfc.NfcAdapter;
@@ -42,17 +40,12 @@ public class TagTouchActivity extends Activity {
         }
 
         Tag currentTag = pStorage.currentTag();
-        try {
-            if (currentTag != null && currentTag.id.equals(tagId)) {
-                pStorage.stopCurrentTag();
-                Toast.makeText(this, currentTag.name + " end.", Toast.LENGTH_SHORT).show();
-            } else {
-                pStorage.startTag(tagId);
-                Toast.makeText(this, pStorage.getTagName(tagId) + " start.", Toast.LENGTH_SHORT).show();
-            }
-        } catch (SQLException e) {
-            Log.e(TAG, "Cannot start/stop the tag:" + tagId);
-            return;
+        if (currentTag != null && currentTag.id.equals(tagId)) {
+//                pStorage.stopCurrentTag();
+            Toast.makeText(this, currentTag.name + " end.", Toast.LENGTH_SHORT).show();
+        } else {
+//                pStorage.startTag(tagId);
+            Toast.makeText(this, pStorage.getTagName(tagId) + " start.", Toast.LENGTH_SHORT).show();
         }
 
         finish();
