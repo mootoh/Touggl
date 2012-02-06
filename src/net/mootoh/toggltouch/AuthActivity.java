@@ -33,12 +33,6 @@ public class AuthActivity extends Activity implements ApiResponseDelegate<String
 
                 TogglApi api = new TogglApi(self);
 
-                /*
-                 * FIXME
-                 */
-                name = api.__debug__getValidEmail();
-                password = api.__debug__getValidPassword();
-
                 if (insufficientLoginForm(name, password)) {
                     Toast errorToast = Toast.makeText(getApplicationContext(), "Enter e-mail and password", Toast.LENGTH_SHORT);
                     errorToast.show();
@@ -67,11 +61,15 @@ public class AuthActivity extends Activity implements ApiResponseDelegate<String
     }
 
     public void onFailed(Exception e) {
-        Toast errorToast = Toast.makeText(getApplicationContext(), "Invalid username/password.", Toast.LENGTH_SHORT);
-        errorToast.show();
+        runOnUiThread(new Runnable() {
+            public void run() {
+                Toast errorToast = Toast.makeText(getApplicationContext(), "Invalid username/password.", Toast.LENGTH_SHORT);
+                errorToast.show();
 
-        // stop the progress indicator
-        submitButton.setEnabled(true);
-        loginProgressBar.setVisibility(ProgressBar.INVISIBLE);
+                // stop the progress indicator
+                submitButton.setEnabled(true);
+                loginProgressBar.setVisibility(ProgressBar.INVISIBLE);
+            }
+        });
     }
 }
