@@ -6,6 +6,7 @@
     <TextView
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:focusable="false"
         android:text="@string/username" />
 
     <EditText
@@ -22,7 +23,7 @@
         android:layout_height="wrap_content"
         android:imeOptions="actionSend|flagNoEnterAction"
         android:inputType="textEmailAddress"
-        android:text="@string/password" />
+        android:text="@string/password" android:focusable="false"/>
 
     <EditText
         android:id="@+id/passwordText"
