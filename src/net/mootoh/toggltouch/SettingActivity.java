@@ -109,28 +109,29 @@ public class SettingActivity extends Activity {
             Log.d(getClass().getSimpleName(), "tagId:" + tagId);
             TextView messageLabel = (TextView)findViewById(R.id.messageLabel);
             messageLabel.setText("Pick a task for this Tag:" + tagId);
-            renderTasks();
 
             ListView taskListView = (ListView)findViewById(R.id.taskList);
             final Context self = this;
             taskListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                public void onItemClick(AdapterView<?> parant, View view, int position, long id) {
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     LinearLayout layout = (LinearLayout)view;
                     TextView textView = (TextView)layout.findViewById(R.id.task_list_item_label);
                     Toast toast = Toast.makeText(self, "clicked " + textView.getText() + ", id:" + id + ", position:" + position, Toast.LENGTH_SHORT);
                     toast.show();
-//                    dbHelper.assignTaskForTag(tagId, tasks[position]);
+
+                    Tag tag = null;
+                    if (Tag.isBrandNew(tagId, self)) {
+//                        tag = new Tag(tagId, null, null);
+                        tag = new Tag(tagId, "a", "b");
+                    } else {
+                        tag = Tag.get(tagId, self);
+                    }
+                    tag.assignTask((Task)parent.getItemAtPosition(position), self);
                 }
             });
         }
     }
 
-    private void renderTasks() {
-        /*
-        for (Task task: tasks)
-            Log.d(getClass().getSimpleName(), "tasks:" + task.getDescription());
-         */
-    }
 /*
     private Task[] getTasks(final TogglTouchProvider pStorage) {
         api.getTimeEntries(new ApiResponseDelegate<Task[]>() {
