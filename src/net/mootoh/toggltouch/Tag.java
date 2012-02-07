@@ -60,6 +60,7 @@ public final class Tag {
         DatabaseHelper dbHelper = new DatabaseHelper(context);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         long rowId = db.insert(TABLE_NAME, null, values);
+        db.close();
         if (rowId <= 0)
             throw new SQLException("Faild to insert row for " + values.getAsString(COLUMN_NAME_TAG_ID));
     }
@@ -67,7 +68,6 @@ public final class Tag {
     static public Tag get(String tagId, Context context) {
         String[] selectionArgs = {tagId};
         return getForSelection(COLUMN_NAME_TAG_ID + " is ?", selectionArgs, context);
-        
     }
 
     static public Tag getForTaskId(String taskId, Context context) {
@@ -90,6 +90,7 @@ public final class Tag {
                     );
         }
         cursor.close();
+        db.close();
         return gotTag;
     }
 
@@ -97,6 +98,7 @@ public final class Tag {
         DatabaseHelper dbHelper = new DatabaseHelper(context);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         int deleted = db.delete(TABLE_NAME, COLUMN_NAME_TAG_ID + " is '" + id + "'", null);
+        db.close();
         if (deleted != 1)
             throw new Exception("Failed in deleting a tag:" + id);
     }
@@ -139,10 +141,11 @@ public final class Tag {
         Cursor cursor = db.query("tags", columns, "id is '" + tagId + "'", null, null, null, null);
         String ret = cursor.moveToFirst() ? cursor.getString(cursor.getColumnIndex("name")) : null;
         cursor.close();
+        db.close();
         return ret;
     }
 
-    public Tag[] getTags(Context context) {
+    static public Tag[] getAll(Context context) {
         DatabaseHelper dbHelper = new DatabaseHelper(context);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         Cursor cursor = db.query("tags", null, null, null, null, null, null);
@@ -150,11 +153,12 @@ public final class Tag {
         ArrayList <Tag> tags = new ArrayList<Tag>();
         while (cursor.moveToNext()) {
             Tag tag = new Tag(cursor.getString(cursor.getColumnIndex("id")),
-                    cursor.getString(cursor.getColumnIndex("name")),
-                    cursor.getString(cursor.getColumnIndex("color")));
+                              cursor.getString(cursor.getColumnIndex("name")),
+                              cursor.getString(cursor.getColumnIndex("color")));
             tags.add(tag);
         }
         cursor.close();
+        db.close();
 
         Tag[] ret = new Tag[tags.size()];
         tags.toArray(ret);
@@ -183,6 +187,7 @@ public final class Tag {
 
         String args[] = {id};
         db.update(TABLE_NAME, values, COLUMN_NAME_TAG_ID + " is ?", args);
+        db.close();
 
         this.taskId = taskId;
     }
@@ -199,5 +204,6 @@ public final class Tag {
         DatabaseHelper dbHelper = new DatabaseHelper(context);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         db.delete(Tag.TABLE_NAME, null, null);
+        db.close();
     }
 }

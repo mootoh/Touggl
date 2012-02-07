@@ -1,14 +1,10 @@
 package net.mootoh.toggltouch;
 
-import java.sql.SQLException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.ArrayList;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -23,11 +19,10 @@ import android.widget.Toast;
 public class SettingActivity extends Activity {
     protected static final String API_TOKEN = "toggl_api_token";
     protected static final String API_TOKEN_KEY = "token";
+    protected static final String TAGID_EXTRA = "tagId";
     protected static final int    API_TOKEN_RESULT = 1;
-    private Task[] tasks;
-    private ArrayAdapter<String> taskAdapter;
+    private ArrayAdapter<Task> taskAdapter;
     private TogglApi api;
-    private DatabaseHelper dbHelper;
 
     /** Called when the activity is first created. */
     @Override
@@ -35,62 +30,64 @@ public class SettingActivity extends Activity {
         super.onCreate(savedInstanceState);
         api = new TogglApi(this);
 
-        if (! hasToken()) {
+        if (! api.hasToken()) {
             android.content.Intent authIntent = new android.content.Intent();
             authIntent.setClass(getApplicationContext(), AuthActivity.class);
             startActivityForResult(authIntent, API_TOKEN_RESULT);
         }
-/*
- * tmp 
-        pStorage = new TogglTouchProvider(this);
-        List <TimeEntry> timeEntries = pStorage.getTimeEntries();
-        tasks = new TimeEntry[timeEntries.size()];
-        timeEntries.toArray(tasks);
 
         setContentView(R.layout.setting);
 
-        setupSyncButton(pStorage);
-        setupClearButton(pStorage);
+        setupSyncButton();
+        setupClearButton();
+
+        Task[] tasks = Task.getAll(this);
+        ArrayList<Task> taskList = new ArrayList<Task>();
+        for (Task task : tasks)
+            taskList.add(task);
 
         ListView taskListView = (ListView)findViewById(R.id.taskList);
-        String[] taskDescriptions = new String[tasks.length];
-        for (int i=0; i<tasks.length; i++) {
-            taskDescriptions[i] =  tasks[i].getDescription();
-        }
-        taskAdapter = new ArrayAdapter<String>(this, R.layout.task_list_item, R.id.task_list_item_label, taskDescriptions);
+        taskAdapter = new ArrayAdapter<Task>(this, R.layout.task_list_item, R.id.task_list_item_label, taskList);
         taskListView.setAdapter(taskAdapter);
-        */
     }
-/*
-    private void setupSyncButton(final TogglTouchProvider pStorage) {
+
+    private void updateTaskList(final Task[] tasks) {
+        runOnUiThread(new Runnable() {
+            public void run() {
+                taskAdapter.clear();
+                taskAdapter.addAll(tasks);
+                taskAdapter.notifyDataSetChanged();
+            }
+        });
+    }
+
+    private void setupSyncButton() {
         Button syncButton = (Button)findViewById(R.id.syncButton);
         syncButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                getTasks(pStorage);
+                syncTasks();
             }
         });
     }
 
-    private void setupClearButton(final TogglTouchProvider pStorage) {
+    private void setupClearButton() {
+        final Context self = this;
         Button clearButton = (Button)findViewById(R.id.clearButton);
         clearButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                try {
-                    dbHelper.reset();
-                    runOnUiThread(new Runnable() {
-                        public void run() {
-                            //                            taskAdapter.clear();
-                            taskAdapter.notifyDataSetChanged();
-                        }
-                    });
+                Tag.clear(self);
+                Task.clear(self);
 
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        taskAdapter.clear();
+                        taskAdapter.notifyDataSetChanged();
+                    }
+                });
             }
         });
     }
-*/
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -102,13 +99,12 @@ public class SettingActivity extends Activity {
             return;
 
         Bundle extras = intent.getExtras();
-        if (extras == null) {
+        if (extras == null)
             return;
-        }
 
-        final String tagId = extras.getString("tagId");
+        final String tagId = extras.getString(TAGID_EXTRA);
         if (tagId != null) {
-            intent.removeExtra("tagId"); // Android OS calls onResume multiple times if the app is in background...
+            intent.removeExtra(TAGID_EXTRA); // Android OS calls onResume multiple times if the app is in background...
 
             Log.d(getClass().getSimpleName(), "tagId:" + tagId);
             TextView messageLabel = (TextView)findViewById(R.id.messageLabel);
@@ -130,8 +126,10 @@ public class SettingActivity extends Activity {
     }
 
     private void renderTasks() {
+        /*
         for (Task task: tasks)
             Log.d(getClass().getSimpleName(), "tasks:" + task.getDescription());
+         */
     }
 /*
     private Task[] getTasks(final TogglTouchProvider pStorage) {
@@ -178,16 +176,19 @@ public class SettingActivity extends Activity {
 
         String apiToken = data.getStringExtra(API_TOKEN_KEY);
         Log.d(getClass().getSimpleName(), "got result token: " + apiToken);
-
-        SharedPreferences sp = getSharedPreferences(SettingActivity.API_TOKEN, 0);
-        SharedPreferences.Editor spe = sp.edit();
-        spe.putString(SettingActivity.API_TOKEN_KEY, apiToken);
-        spe.commit();
+ 
+        syncTasks();
     }
 
-    private boolean hasToken() {
-        SharedPreferences sp = getSharedPreferences(SettingActivity.API_TOKEN, 0);
-        String token = sp.getString(API_TOKEN_KEY, null);
-        return token != null;
+    private void syncTasks() {
+        Task.sync(this, new TaskSyncDelegate() {
+            public void onSucceeded(Task[] result) {
+                updateTaskList(result);
+            }
+            
+            public void onFailed(Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 }

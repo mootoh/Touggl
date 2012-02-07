@@ -26,14 +26,13 @@ public class TagTouchActivity extends Activity {
         final String tagId = getTagId(intent);
         if (tagId == null)
             return;
-/*
- * tmp 
-        final TogglTouchProvider pStorage = new TogglTouchProvider(this);
-        if (pStorage.isBrandNewTag(tagId)) {
+
+        if (Tag.isBrandNew(tagId, this)) {
             startSettingActivityWithTagId(tagId);
             return;
         }
-
+/*
+ * tmp
         TogglApi api = new TogglApi(this);
         final TimeEntry timeEntry = pStorage.currentTimeEntry();
         final Context self = this;
@@ -71,23 +70,15 @@ public class TagTouchActivity extends Activity {
 */
         finish();
     }
-/*
+
     private void startSettingActivityWithTagId(final String tagId) {
         Intent newTagIntent = new Intent();
-        newTagIntent.putExtra("tagId", tagId);
+        newTagIntent.putExtra(SettingActivity.TAGID_EXTRA, tagId);
         newTagIntent.setClass(this, SettingActivity.class);
         startActivity(newTagIntent);
         finish();
     }
 
-    private void startSettingActivityWithTagId(final String tagId) {
-        Intent newTagIntent = new Intent();
-        newTagIntent.putExtra("tagId", tagId);
-        newTagIntent.setClass(this, SettingActivity.class);
-        startActivity(newTagIntent);
-        finish();
-    }
-*/
     private String getTagId(Intent intent) {
         android.nfc.Tag tag = (android.nfc.Tag)intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
         if (tag == null) {

@@ -18,7 +18,6 @@ import android.database.sqlite.SQLiteDatabase;
 public class Task {
     private int id;
     private String description;
-    private String tagId;
     private Date started;
 
     private static final String DURATION = "0";
@@ -27,19 +26,12 @@ public class Task {
 
     public static final String TABLE_NAME = "tasks";
     public static final String COLUMN_NAME_DESCRIPTION = "description";
-    public static final String ID = "id_";
+    public static final String COLUMN_NAME_ID = "id_";
 
     public Task(int id, String description) {
         this.id = id;
         this.description = description;
-        this.tagId = null;
         this.started = null;
-    }
-
-    public Task(int id, String description, String tagId) {
-        this.id = id;
-        this.description = description;
-        this.tagId = tagId;
     }
 
     public String getDescription() {
@@ -52,10 +44,6 @@ public class Task {
 
     public void setId(int id) {
         this.id = id;
-    }
-
-    public String getTagId() {
-        return tagId;
     }
 
     public String toJsonString() throws JSONException {
@@ -88,7 +76,6 @@ public class Task {
         Date stopped = new Date();
         data.put("stop", dateAsISO8601(stopped));
         data.put("duration", (stopped.getTime() - started.getTime()) / 1000);
-
         data.put("description", description);
 
         JSONObject json = new JSONObject();
@@ -109,17 +96,20 @@ public class Task {
         DatabaseHelper dbHelper = new DatabaseHelper(context);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         long rowId = db.insert("timeEntries", null, values);
+        db.close();
         if (rowId <= 0)
             throw new SQLException("Faild to insert row for description:" + description);
     }
 
-    public void save(String description, Context context) throws SQLException {
+    public void save(Context context) throws SQLException {
         ContentValues values = new ContentValues();
-        values.put("description", description);
+        values.put(COLUMN_NAME_ID, id);
+        values.put(COLUMN_NAME_DESCRIPTION, description);
 
         DatabaseHelper dbHelper = new DatabaseHelper(context);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        long rowId = db.insert("timeEntries", null, values);
+        long rowId = db.insert(TABLE_NAME, null, values);
+        db.close();
         if (rowId <= 0)
             throw new SQLException("Faild to insert row for description:" + description);
     }
@@ -131,6 +121,7 @@ public class Task {
         DatabaseHelper dbHelper = new DatabaseHelper(context);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         long rowId = db.insert("timeEntries", null, values);
+        db.close();
         if (rowId <= 0)
             throw new SQLException("Faild to insert row for description:" + entry.getDescription());
     }
@@ -147,6 +138,7 @@ public class Task {
             entries.add(entry);
         }
         cursor.close();
+        db.close();
         return entries;
     }
 
@@ -164,19 +156,55 @@ public class Task {
         // TODO Auto-generated method stub
     }
 
-    public static Task getTasksForTagId(String tagId2, Context context) {
+    public static Task[] getAll(Context context) {
         DatabaseHelper dbHelper = new DatabaseHelper(context);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        String[] args = {tagId2};
-        Cursor cursor = db.query("timeEntries", null, "tagId=?", args, null, null, null);
+        Cursor cursor = db.query(Task.TABLE_NAME, null, null, null, null, null, null);
 
-        Task entry = null;
+        ArrayList <Task> tasks = new ArrayList<Task>();
         while (cursor.moveToNext()) {
-            entry = new Task(cursor.getInt(cursor.getColumnIndex("id")), cursor.getString(cursor.getColumnIndex("description")), cursor.getString(cursor.getColumnIndex("tagId")));
-            break;
+            Task task = new Task(cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_ID)),
+                                 cursor.getString(cursor.getColumnIndex(COLUMN_NAME_DESCRIPTION)));
+            tasks.add(task);
         }
         cursor.close();
+        db.close();
 
-        return entry;
-   }
+        Task[] ret = new Task[tasks.size()];
+        tasks.toArray(ret);
+        return ret;
+    }
+    
+    public static void sync(final Context context, final TaskSyncDelegate delegate) {
+        TogglApi api = new TogglApi(context);
+        api.getTimeEntries(new ApiResponseDelegate<Task[]>() {
+            public void onSucceeded(Task[] result) {
+                // TODO: re-link relation between Tag-Task
+                for (Task task: result) {
+                    try {
+                        task.save(context);
+                    } catch (SQLException e) {
+                        delegate.onFailed(e);
+                        return;
+                    }
+                }
+                delegate.onSucceeded(result);
+            }
+            
+            public void onFailed(Exception e) {
+                delegate.onFailed(e);
+            }
+        });
+    }
+
+    public static void clear(Context context) {
+        DatabaseHelper dbHelper = new DatabaseHelper(context);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        db.delete(Task.TABLE_NAME, null, null);
+        db.close();
+    }
+
+    public String toString() {
+        return description;
+    }
 }

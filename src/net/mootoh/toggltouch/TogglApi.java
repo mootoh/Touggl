@@ -182,6 +182,17 @@ public class TogglApi {
     public String __debug__getValidPassword() {
         return context.getString(R.string.valid_password);
     }
+
+    public void syncTasks() {
+        assert(hasToken());
+        getTimeEntries(new ApiResponseDelegate<Task[]>() {
+            public void onSucceeded(Task[] result) {
+            }
+            
+            public void onFailed(Exception e) {
+            }
+        });
+    }
 }
 
 class JsonHttpReequestTask extends AsyncTask<String, Integer, JSONObject> {

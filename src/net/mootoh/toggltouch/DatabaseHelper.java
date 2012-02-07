@@ -24,7 +24,7 @@ class DatabaseHelper extends SQLiteOpenHelper {
                         + Tag.COLUMN_NAME_TASK_ID + " TEXT"
                         + ");",
                  "CREATE TABLE " + Task.TABLE_NAME     + " ("
-                        + Task.ID                      + " INTEGER PRIMARY KEY,"
+                        + Task.COLUMN_NAME_ID                      + " INTEGER PRIMARY KEY,"
                         + Task.COLUMN_NAME_DESCRIPTION + " TEXT NOT NULL"
                         + ");"
         };
