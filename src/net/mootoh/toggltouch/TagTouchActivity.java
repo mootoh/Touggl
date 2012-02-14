@@ -5,46 +5,62 @@ import java.util.ArrayList;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.nfc.NfcAdapter;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 
 public class TagTouchActivity extends Activity {
     private String tagId = null;
+    private String selectedColor = null;
+
+    final String[] colors = {
+            "#ff7f00",
+            "#ff007f",
+            "#66ff66",
+            "#ffff66",
+            "#007fff"
+    };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.tag_touch);
         handleIntent(getIntent());
     }
 
     private void handleIntent(Intent intent) {
         String action = intent.getAction();
         if (! NfcAdapter.ACTION_TECH_DISCOVERED.equals(action))
-            return;
+            finish();
 
         tagId = getTagId(intent);
         if (tagId == null)
-            return;
+            finish();
 
-        TextView messageLabel = (TextView)findViewById(R.id.tagTouchMessageLabel);
-        if (Tag.isBrandNew(tagId, this)) {
-            setTitle("New Tag"); 
-            messageLabel.setText("New Tag");
-        } else {
-            messageLabel.setText("Existing Tag");
-        }
+        if (Tag.isBrandNew(tagId, this))
+            newTag();
+        else
+            existingTag();
+    }
 
-        setupTaskList();
+    private void existingTag() {
+        // if the tag is the current tag
+        //    stop the task
+        // else
+        //    start the task
+        //
+
         /*
          * tmp
         TogglApi api = new TogglApi(this);
@@ -82,6 +98,44 @@ public class TagTouchActivity extends Activity {
             }
         }
          */
+        finish();
+    }
+
+    private void newTag() {
+        setTitle("New Tag");
+        setContentView(R.layout.tag_touch);
+
+        setupColors();
+        setupTaskList();
+    }
+
+    private void setupColors() {
+        final RadioGroup radioGroup = (RadioGroup)findViewById(R.id.colorRadioGroup);
+
+        for (int j = 0; j < radioGroup.getChildCount(); j++) {
+            final ToggleButton toggleButton = (ToggleButton) radioGroup.getChildAt(j);
+            toggleButton.setBackgroundColor(Color.parseColor(colors[j]));
+            toggleButton.setAlpha(0.3f);
+        }
+
+        radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                for (int j = 0; j < radioGroup.getChildCount(); j++) {
+                    final ToggleButton toggleButton = (ToggleButton) radioGroup.getChildAt(j);
+                    boolean checked = toggleButton.getId() == checkedId;
+                    toggleButton.setChecked(checked);
+                    toggleButton.setAlpha(checked ? 1.0f : 0.3f);
+
+                    if (checked)
+                        selectedColor = colors[j];
+                }
+            }
+        });
+    }
+
+    public void onToggle(View view) {
+        RadioGroup radioGroup = (RadioGroup)view.getParent();
+        radioGroup.check(view.getId());
     }
 
     private void setupTaskList() {
@@ -99,7 +153,7 @@ public class TagTouchActivity extends Activity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 LinearLayout layout = (LinearLayout)view;
                 TextView textView = (TextView)layout.findViewById(R.id.task_list_item_label);
-                Toast toast = Toast.makeText(self, "clicked " + textView.getText() + ", id:" + id + ", position:" + position, Toast.LENGTH_SHORT);
+                Toast toast = Toast.makeText(self, "clicked " + textView.getText() + "with color:" + selectedColor, Toast.LENGTH_SHORT);
                 toast.show();
 
                 Tag tag = null;

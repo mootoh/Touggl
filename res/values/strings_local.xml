@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="valid_email">VALID_EMAIL!</string>
-    <string name="valid_password">VALID_PASSWORD</string>
+    <string name="valid_email">mootoh+toggltest@gmail.com</string>
+    <string name="valid_password">mootohtoggltest</string>
 
 </resources>
