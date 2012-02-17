@@ -1,5 +1,6 @@
 package net.mootoh.toggltouch;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 import android.app.Activity;
@@ -12,7 +13,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioGroup;
@@ -102,7 +102,7 @@ public class TagTouchActivity extends Activity {
     }
 
     private void newTag() {
-        setTitle("New Tag");
+        setTitle("New Tag: " + tagId);
         setContentView(R.layout.tag_touch);
 
         setupColors();
@@ -157,11 +157,12 @@ public class TagTouchActivity extends Activity {
                 toast.show();
 
                 Tag tag = null;
-                if (Tag.isBrandNew(tagId, self)) {
-                    //                    tag = new Tag(tagId, null, null);
-                    tag = new Tag(tagId, "a", "b");
-                } else {
-                    tag = Tag.get(tagId, self);
+                tag = new Tag(tagId, "a", selectedColor);
+                try {
+                    tag.save(self);
+                } catch (SQLException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
                 }
                 tag.assignTask((Task)parent.getItemAtPosition(position), self);
             }

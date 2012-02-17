@@ -2,17 +2,13 @@ package net.mootoh.toggltouch;
 
 
 import java.sql.SQLException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.SimpleTimeZone;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.net.Uri;
 import android.util.Log;
 
 public final class Tag {
@@ -138,7 +134,7 @@ public final class Tag {
         DatabaseHelper dbHelper = new DatabaseHelper(context);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         String[] columns = { "name" };
-        Cursor cursor = db.query("tags", columns, "id is '" + tagId + "'", null, null, null, null);
+        Cursor cursor = db.query("tags", columns, COLUMN_NAME_TAG_ID + " is '" + tagId + "'", null, null, null, null);
         String ret = cursor.moveToFirst() ? cursor.getString(cursor.getColumnIndex("name")) : null;
         cursor.close();
         db.close();
@@ -152,11 +148,15 @@ public final class Tag {
 
         ArrayList <Tag> tags = new ArrayList<Tag>();
         while (cursor.moveToNext()) {
-            Tag tag = new Tag(cursor.getString(cursor.getColumnIndex("id")),
-                              cursor.getString(cursor.getColumnIndex("name")),
-                              cursor.getString(cursor.getColumnIndex("color")));
+            Tag tag = new Tag(
+                    cursor.getString(cursor.getColumnIndex(COLUMN_NAME_TAG_ID)),
+                    cursor.getString(cursor.getColumnIndex(COLUMN_NAME_NAME)),
+                    cursor.getString(cursor.getColumnIndex(COLUMN_NAME_COLOR)),
+                    cursor.getString(cursor.getColumnIndex(COLUMN_NAME_TASK_ID))
+                    );
             tags.add(tag);
         }
+
         cursor.close();
         db.close();
 
@@ -186,8 +186,12 @@ public final class Tag {
             values.put(COLUMN_NAME_TASK_ID, taskId);
 
         String args[] = {id};
-        db.update(TABLE_NAME, values, COLUMN_NAME_TAG_ID + " is ?", args);
+        int ret = db.update(TABLE_NAME, values, COLUMN_NAME_TAG_ID + " is ?", args);
         db.close();
+        if (ret != 1) {
+            // TODO: raise an exception or do something error handling
+            Log.e(getClass().getSimpleName(), "could not update the table for tagId:" + id + ", taskId:" + taskId);
+        }
 
         this.taskId = taskId;
     }
