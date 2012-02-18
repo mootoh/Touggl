@@ -109,6 +109,7 @@ public class TagTouchActivity extends Activity {
 
         setupColors();
         setupTaskList();
+        hideTaskSelection();
     }
 
     private void setupColors() {
@@ -131,6 +132,7 @@ public class TagTouchActivity extends Activity {
                     if (checked)
                         selectedColor = colors[j];
                 }
+                showTaskSelection();
             }
         });
     }
@@ -153,22 +155,36 @@ public class TagTouchActivity extends Activity {
 
         taskListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                LinearLayout layout = (LinearLayout)view;
-                TextView textView = (TextView)layout.findViewById(R.id.task_list_item_label);
-                Toast toast = Toast.makeText(self, "clicked " + textView.getText() + "with color:" + selectedColor, Toast.LENGTH_SHORT);
-                toast.show();
-
                 Tag tag = null;
                 tag = new Tag(tagId, "a", selectedColor);
                 try {
                     tag.save(self);
                 } catch (SQLException e) {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
                 tag.assignTask((Task)parent.getItemAtPosition(position), self);
+
+                LinearLayout layout = (LinearLayout)view;
+                TextView textView = (TextView)layout.findViewById(R.id.task_list_item_label);
+                Toast toast = Toast.makeText(self, "selected" + textView.getText() + "with color:" + selectedColor, Toast.LENGTH_SHORT);
+                toast.show();
+                finish();
             }
         });
+    }
+
+    private void showTaskSelection() {
+        View label = findViewById(R.id.tagTouchMessageLabel);
+        label.setVisibility(View.VISIBLE);
+        View list = findViewById(R.id.tagTouchTaskList);
+        list.setVisibility(View.VISIBLE);
+    }
+
+    private void hideTaskSelection() {
+        View label = findViewById(R.id.tagTouchMessageLabel);
+        label.setVisibility(View.INVISIBLE);
+        View list = findViewById(R.id.tagTouchTaskList);
+        list.setVisibility(View.INVISIBLE);
     }
 
     private String getTagId(Intent intent) {
