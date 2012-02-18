@@ -10,7 +10,9 @@ import android.graphics.Color;
 import android.nfc.NfcAdapter;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
@@ -139,16 +141,16 @@ public class TagTouchActivity extends Activity {
     }
 
     private void setupTaskList() {
-        Task[] tasks = Task.getAll(this);
+        final Task[] tasks = Task.getAll(this);
         ArrayList<Task> taskList = new ArrayList<Task>();
         for (Task task : tasks)
             taskList.add(task);
 
         ListView taskListView = (ListView)findViewById(R.id.tagTouchTaskList);
-        ArrayAdapter<Task> taskAdapter = new ArrayAdapter<Task>(this, R.layout.task_list_item, R.id.task_list_item_label, taskList);
+        final Context self = this;
+        TaskArrayAdapter taskAdapter = new TaskArrayAdapter(this, R.layout.task_list_item, R.id.task_list_item_label, taskList);
         taskListView.setAdapter(taskAdapter);
 
-        final Context self = this;
         taskListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 LinearLayout layout = (LinearLayout)view;
