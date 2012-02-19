@@ -42,6 +42,15 @@
                 android:name="android.nfc.action.TECH_DISCOVERED"
                 android:resource="@xml/filter_nfc" />
         </activity>
+        <activity
+            android:name=".NewTagActivity"
+            android:theme="@android:style/Theme.Holo.Light" >
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>
