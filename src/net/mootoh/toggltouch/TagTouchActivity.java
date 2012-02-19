@@ -4,28 +4,23 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.nfc.NfcAdapter;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.LinearLayout;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.RadioGroup;
-import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.ToggleButton;
-
 
 public class TagTouchActivity extends Activity {
     private String tagId = null;
     private String selectedColor = null;
+    private int selectedTask = -1;
 
     final String[] colors = {
             "#ff7f00",
@@ -107,8 +102,11 @@ public class TagTouchActivity extends Activity {
         setTitle("New Tag: " + tagId);
         setContentView(R.layout.tag_touch);
 
+        ViewGroup actionButtonLayout = (ViewGroup)findViewById(R.id.actionButtonLayout);
+        actionButtonLayout.setVisibility(View.INVISIBLE);
         setupColors();
         setupTaskList();
+        setupActionButtons();
         hideTaskSelection();
     }
 
@@ -149,30 +147,52 @@ public class TagTouchActivity extends Activity {
             taskList.add(task);
 
         ListView taskListView = (ListView)findViewById(R.id.tagTouchTaskList);
-        final Context self = this;
+        final Activity self = this;
         TaskArrayAdapter taskAdapter = new TaskArrayAdapter(this, R.layout.task_list_item, R.id.task_list_item_label, taskList);
         taskListView.setAdapter(taskAdapter);
 
         taskListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Tag tag = null;
-                tag = new Tag(tagId, "a", selectedColor);
-                try {
-                    tag.save(self);
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-                tag.assignTask((Task)parent.getItemAtPosition(position), self);
+                selectedTask = position;
+                ViewGroup actionButtonLayout = (ViewGroup)self.findViewById(R.id.actionButtonLayout);
+                actionButtonLayout.setVisibility(View.VISIBLE);
+            }
+        });
+    }
 
-                LinearLayout layout = (LinearLayout)view;
-                TextView textView = (TextView)layout.findViewById(R.id.task_list_item_label);
-                Toast toast = Toast.makeText(self, "selected" + textView.getText() + "with color:" + selectedColor, Toast.LENGTH_SHORT);
-                toast.show();
+    private void setupActionButtons() {
+        Button doneButton = (Button)findViewById(R.id.doneButton);
+        doneButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                decided();
+                finish();
+            }
+        });
+
+        Button startButton = (Button)findViewById(R.id.startButton);
+        startButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                decided();
+                // TODO: start the task
                 finish();
             }
         });
     }
 
+    private void decided() {
+        Tag tag = null;
+        tag = new Tag(tagId, "a", selectedColor);
+        try {
+            tag.save(this);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        ListView taskListView = (ListView)findViewById(R.id.tagTouchTaskList);
+        Task task = (Task)taskListView.getItemAtPosition(selectedTask);
+        tag.assignTask(task, this);
+    }
+    
     private void showTaskSelection() {
         View label = findViewById(R.id.tagTouchMessageLabel);
         label.setVisibility(View.VISIBLE);

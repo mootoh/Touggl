@@ -36,25 +36,25 @@
                 android:id="@+id/radio0"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textOn=""
+                android:onClick="onToggle"
                 android:textOff=""
-                android:onClick="onToggle" />
+                android:textOn="" />
 
             <ToggleButton
                 android:id="@+id/radio1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textOn=""
+                android:onClick="onToggle"
                 android:textOff=""
-                android:onClick="onToggle" />
+                android:textOn="" />
 
             <ToggleButton
                 android:id="@+id/radio2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textOn=""
+                android:onClick="onToggle"
                 android:textOff=""
-                android:onClick="onToggle" />
+                android:textOn="" />
         </RadioGroup>
     </LinearLayout>
 
@@ -75,5 +75,29 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="24dp"
         android:layout_marginRight="24dp" />
+
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/actionButtonLayout"
+        android:layout_width="match_parent"
+        android:layout_height="52dip"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal" >
+
+        <Button
+            android:id="@+id/doneButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Done" />
+
+        <Button
+            android:id="@+id/startButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Start" />
+
+    </LinearLayout>
 
 </LinearLayout>
