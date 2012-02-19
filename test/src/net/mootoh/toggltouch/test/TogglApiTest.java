@@ -1,5 +1,6 @@
 package net.mootoh.toggltouch.test;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -112,7 +113,7 @@ public final class TogglApiTest extends AndroidTestCase {
             login();
         assert(api.hasToken());
 
-        Task timeEntry = new Task(1, "hoge");
+        Task timeEntry = new Task(1, "hoge", new Date());
         ApiRequester<Integer> requester = new ApiRequester<Integer>();
         api.startTimeEntry(timeEntry, requester);
         assertTrue(requester.waitForCompletion());
@@ -125,7 +126,7 @@ public final class TogglApiTest extends AndroidTestCase {
             login();
         assert(api.hasToken());
 
-        Task timeEntry = new Task(1, "timeEntry to be stopped");
+        Task timeEntry = new Task(1, "timeEntry to be stopped", new Date());
         {
             ApiRequester<Integer> requester = new ApiRequester<Integer>();
             api.startTimeEntry(timeEntry, requester);

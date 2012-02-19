@@ -1,10 +1,10 @@
 package net.mootoh.toggltouch;
 
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.TimeZone;
 
 import org.json.JSONException;
@@ -18,20 +18,41 @@ import android.database.sqlite.SQLiteDatabase;
 public class Task {
     private int id;
     private String description;
-    private Date started;
+    private Date startedAt;
 
-    private static final String DURATION = "0";
+    private static java.text.DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    static {
+        formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
+
+    private static final String DURATION = "-1";
     private static final String BILLABLE = "false";
     private static final String CREATED_WITH = "TogglTouch";
 
     public static final String TABLE_NAME = "tasks";
     public static final String COLUMN_NAME_DESCRIPTION = "description";
     public static final String COLUMN_NAME_ID = "id_";
+    public static final String COLUMN_NAME_STARTED = "started";
 
-    public Task(int id, String description) {
+    public Task(int id, String description, Date started) {
         this.id = id;
         this.description = description;
-        this.started = null;
+        this.startedAt = started;
+    }
+
+    public Task(int id, String description, String started) {
+        this.id = id;
+        this.description = description;
+        try {
+            this.startedAt = formatter.parse(started);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "Task #" + id + ": " + description + "started: " + startedAt.toString();
     }
 
     public String getDescription() {
@@ -52,11 +73,9 @@ public class Task {
         data.put("billable", BILLABLE);
         data.put("created_with", CREATED_WITH);
 
-        started = new Date();
-        data.put("start", dateAsISO8601(started));
-        data.put("stop", dateAsISO8601(started));
+        data.put("start", dateAsISO8601(startedAt));
+        data.put("stop", dateAsISO8601(startedAt));
         data.put("description", description);
-        data.put("duration", -1);
 
         JSONObject json = new JSONObject();
         json.put("time_entry", data);
@@ -64,18 +83,16 @@ public class Task {
     }
 
     private String dateAsISO8601(Date date) {
-        java.text.DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss+0000");
-        format.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return format.format(date);
+        return formatter.format(date);
     }
 
     public String toStopJsonString() throws JSONException {
         JSONObject data = new JSONObject();
-        assert(started != null);
-        data.put("start", dateAsISO8601(started));
+        assert(startedAt != null);
+        data.put("start", dateAsISO8601(startedAt));
         Date stopped = new Date();
         data.put("stop", dateAsISO8601(stopped));
-        data.put("duration", (stopped.getTime() - started.getTime()) / 1000);
+        data.put("duration", (stopped.getTime() - startedAt.getTime()) / 1000);
         data.put("description", description);
 
         JSONObject json = new JSONObject();
@@ -105,6 +122,7 @@ public class Task {
         ContentValues values = new ContentValues();
         values.put(COLUMN_NAME_ID, id);
         values.put(COLUMN_NAME_DESCRIPTION, description);
+        values.put(COLUMN_NAME_STARTED, formatter.format(startedAt));
 
         DatabaseHelper dbHelper = new DatabaseHelper(context);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
@@ -126,30 +144,29 @@ public class Task {
             throw new SQLException("Faild to insert row for description:" + entry.getDescription());
     }
 
-    public List <Task> getTimeEntries(Context context) {
+    public static Task getTask(String taskId, Context context) {
+        String[] selectionArgs = {taskId};
+
         DatabaseHelper dbHelper = new DatabaseHelper(context);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        Cursor cursor = db.query("timeEntries", null, null, null, null, null, null);
-
-        ArrayList <Task> entries = new ArrayList<Task>();
-        while (cursor.moveToNext()) {
-            Task entry = new Task(cursor.getInt(cursor.getColumnIndex("id")),
-                    cursor.getString(cursor.getColumnIndex("description")));
-            entries.add(entry);
+        Cursor cursor = db.query(TABLE_NAME, null, COLUMN_NAME_ID + " is ?", selectionArgs, null, null, null);
+        Task task = null;
+        if (cursor.moveToFirst()) {
+            String dateString = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_STARTED));
+            try {
+                Date started = formatter.parse(dateString);
+                task = new Task(
+                        cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_ID)),
+                        cursor.getString(cursor.getColumnIndex(COLUMN_NAME_DESCRIPTION)),
+                        started
+                        );
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
         }
         cursor.close();
         db.close();
-        return entries;
-    }
-
-    public Task currentTimeEntry() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    public void stopCurrentTimeEntry() {
-        // TODO Auto-generated method stub
-
+        return task;
     }
 
     public static Task[] getAll(Context context) {
@@ -159,9 +176,16 @@ public class Task {
 
         ArrayList <Task> tasks = new ArrayList<Task>();
         while (cursor.moveToNext()) {
-            Task task = new Task(cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_ID)),
-                                 cursor.getString(cursor.getColumnIndex(COLUMN_NAME_DESCRIPTION)));
-            tasks.add(task);
+            String dateString = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_STARTED));
+            try {
+                Date started = formatter.parse(dateString);
+                Task task = new Task(cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_ID)),
+                        cursor.getString(cursor.getColumnIndex(COLUMN_NAME_DESCRIPTION)),
+                        started);
+                tasks.add(task);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
         }
         cursor.close();
         db.close();
@@ -200,7 +224,8 @@ public class Task {
         db.close();
     }
 
-    public String toString() {
-        return description;
+    public static Task current() {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

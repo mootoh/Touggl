@@ -3,10 +3,10 @@ package net.mootoh.toggltouch;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Date;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
@@ -16,13 +16,13 @@ public final class Tag {
     public String name;
     public String color;
     public String taskId;
-    public Date timeStamp;
 
     public static final String TABLE_NAME = "tags";
     public static final String COLUMN_NAME_TAG_ID = "tag_id";
     public static final String COLUMN_NAME_NAME   = "name";
     public static final String COLUMN_NAME_COLOR  = "color";
     public static final String COLUMN_NAME_TASK_ID = "task_id";
+    private static final String CURRENT_TAG_KEY = "current_tag";
 
     public Tag(String id, String name, String color) {
         this.id = id;
@@ -36,17 +36,7 @@ public final class Tag {
         this.color = color;
         this.taskId = taskId;
     }
-/*
-    public Tag(String id, String name, String color, String touchedAt) throws ParseException {
-        this.id = id;
-        this.name = name;
-        this.color = color;
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        SimpleTimeZone tz = new SimpleTimeZone(0, "GMT");
-        formatter.setTimeZone(tz);
-        this.timeStamp = formatter.parse(touchedAt);
-    }
-*/
+
     public void save(Context context) throws SQLException {
         ContentValues values = new ContentValues();
         values.put(COLUMN_NAME_TAG_ID, id);
@@ -101,44 +91,6 @@ public final class Tag {
 
     public static boolean isBrandNew(String tagId, Context context) {
         return Tag.get(tagId,  context) == null;
-    }
-/*
-    public Tag currentTag(Context context) {
-        // TODO: fix touches table
-        final String query = "SELECT * FROM touches t1 INNER JOIN tags t2 ON t1.tagId=t2.id ORDER BY t1.touchedAt DESC LIMIT 1";
-
-        DatabaseHelper dbHelper = new DatabaseHelper(context);
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-        Cursor cursor = db.rawQuery(query, null);
-        Tag returnTag = null;
-
-        if (cursor.moveToFirst()) {
-            String touchedAt = cursor.getString(cursor.getColumnIndex("touchedAt"));
-
-            try {
-                Tag current = new Tag(
-                        cursor.getString(cursor.getColumnIndex("tagId")),
-                        cursor.getString(cursor.getColumnIndex("name")),
-                        cursor.getString(cursor.getColumnIndex("color")),
-                        touchedAt);
-                returnTag = current;
-            } catch (ParseException e) {
-                Log.e(getClass().getSimpleName(), "cannot parse the date format:" + touchedAt);
-            }
-        }
-        cursor.close();
-        return returnTag;
-    }
-*/
-    public String getTagName(String tagId, Context context) {
-        DatabaseHelper dbHelper = new DatabaseHelper(context);
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-        String[] columns = { "name" };
-        Cursor cursor = db.query("tags", columns, COLUMN_NAME_TAG_ID + " is '" + tagId + "'", null, null, null, null);
-        String ret = cursor.moveToFirst() ? cursor.getString(cursor.getColumnIndex("name")) : null;
-        cursor.close();
-        db.close();
-        return ret;
     }
 
     static public Tag[] getAll(Context context) {
@@ -200,14 +152,30 @@ public final class Tag {
         return taskId != null;
     }
 
-    public void removeTagFromTimeEntry(String tagId, Task timeEntry) {
-        // TODO Auto-generated method stub
-    }
-
     public static void clear(Context context) {
         DatabaseHelper dbHelper = new DatabaseHelper(context);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         db.delete(Tag.TABLE_NAME, null, null);
         db.close();
+    }
+
+    public static Tag getCurrent(Context context) {
+        SharedPreferences sp = context.getSharedPreferences(TogglTouch.STORAGE_NAME, 0);
+        String current = sp.getString(CURRENT_TAG_KEY, null);
+        return Tag.get(current, context);
+    }
+
+    public static void setCurrent(Context context, Tag tag) {
+        SharedPreferences sp = context.getSharedPreferences(TogglTouch.STORAGE_NAME, 0);
+        SharedPreferences.Editor spe = sp.edit();
+        spe.putString(CURRENT_TAG_KEY, tag.id);
+        spe.commit();
+    }
+
+    public static void resetCurrent(Context context) {
+        SharedPreferences sp = context.getSharedPreferences(TogglTouch.STORAGE_NAME, 0);
+        SharedPreferences.Editor spe = sp.edit();
+        spe.remove(CURRENT_TAG_KEY);
+        spe.commit();
     }
 }

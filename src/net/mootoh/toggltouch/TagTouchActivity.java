@@ -1,10 +1,15 @@
 package net.mootoh.toggltouch;
 
+import java.sql.SQLException;
+
+import org.json.JSONException;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.nfc.NfcAdapter;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
 public class TagTouchActivity extends Activity {
     public static final String TAGID_KEY = "tagId";
@@ -26,6 +31,7 @@ public class TagTouchActivity extends Activity {
             newTag();
         else
             existingTag();
+        finish();
     }
 
     private void newTag() {
@@ -36,27 +42,30 @@ public class TagTouchActivity extends Activity {
     }
 
     private void existingTag() {
-        // if the tag is the current tag
-        //    stop the task
         // else
         //    start the task
         //
 
-        /*
-         * tmp
+        Tag tag = Tag.getCurrent(this);
+        final Task task = Task.getTask(tag.taskId, this);
+        final Activity self = this;
         TogglApi api = new TogglApi(this);
-        final TimeEntry timeEntry = pStorage.currentTimeEntry();
-        final Context self = this;
-        if (timeEntry != null && timeEntry.getTagId().equals(tagId)) {
-            pStorage.stopCurrentTimeEntry();
+
+        // if the tag is the current tag
+        if (tag != null && tag.id.equals(tagId)) {
+            //  stop the task
             try {
-                api.stopTimeEntry(timeEntry, new ApiResponseDelegate<Integer>() {
+                api.stopTimeEntry(task, new ApiResponseDelegate<Integer>() {
                     public void onSucceeded(Integer result) {
-                        Toast.makeText(self, timeEntry.getDescription() + " end.", Toast.LENGTH_SHORT).show();
+                        self.runOnUiThread(new Runnable() {
+                            public void run() {
+                                Toast.makeText(self, task.getDescription() + " end.", Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     }
 
                     public void onFailed(Exception e) {
-                        // TODO Auto-generated method stub
+                        e.printStackTrace();
                     }
                 });
             } catch (JSONException e) {
@@ -65,21 +74,29 @@ public class TagTouchActivity extends Activity {
             }
         } else {
             try {
-                api.startTimeEntry(timeEntry, new ApiResponseDelegate<Integer>() {
+                api.startTimeEntry(task, new ApiResponseDelegate<Integer>() {
                     public void onSucceeded(Integer result) {
-                        pStorage.startTimeEntry(timeEntry);
-                        Toast.makeText(self, timeEntry.getDescription() + " start.", Toast.LENGTH_SHORT).show();
+                        task.setId(result.intValue());
+                        try {
+                            task.save(self);
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                        self.runOnUiThread(new Runnable() {
+                            public void run() {
+                                Toast.makeText(self, task.getDescription() + " start.", Toast.LENGTH_SHORT).show();
+                            }
+                        });
                     }
 
                     public void onFailed(Exception e) {
+                        e.printStackTrace();
                     }
                 });
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
-         */
-        finish();
     }
 
     private String getTagId(Intent intent) {

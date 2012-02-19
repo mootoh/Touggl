@@ -20,12 +20,13 @@ class DatabaseHelper extends SQLiteOpenHelper {
                 "CREATE TABLE " + Tag.TABLE_NAME  + " ("
                         + Tag.COLUMN_NAME_TAG_ID  + " TEXT PRIMARY KEY NOT NULL,"
                         + Tag.COLUMN_NAME_NAME    + " TEXT,"
-                        + Tag.COLUMN_NAME_COLOR   + " TEXT,"
+                        + Tag.COLUMN_NAME_COLOR   + " TEXT NOT NULL,"
                         + Tag.COLUMN_NAME_TASK_ID + " TEXT"
                         + ");",
                  "CREATE TABLE " + Task.TABLE_NAME     + " ("
-                        + Task.COLUMN_NAME_ID                      + " INTEGER PRIMARY KEY,"
-                        + Task.COLUMN_NAME_DESCRIPTION + " TEXT NOT NULL"
+                        + Task.COLUMN_NAME_ID          + " INTEGER PRIMARY KEY,"
+                        + Task.COLUMN_NAME_DESCRIPTION + " TEXT NOT NULL,"
+                        + Task.COLUMN_NAME_STARTED     + " TEXT NOT NULL"
                         + ");"
         };
 

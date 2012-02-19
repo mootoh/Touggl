@@ -33,7 +33,7 @@ public class TogglApi {
     public TogglApi(final Context context) {
         this.context = context;
 
-        SharedPreferences sp = context.getSharedPreferences(SettingActivity.API_TOKEN, 0);
+        SharedPreferences sp = context.getSharedPreferences(TogglTouch.STORAGE_NAME, 0);
         apiToken = sp.getString(API_TOKEN_KEY, null);
     }
 
@@ -42,7 +42,7 @@ public class TogglApi {
     }
 
     public void clearToken() {
-        SharedPreferences sp = context.getSharedPreferences(SettingActivity.API_TOKEN, 0);
+        SharedPreferences sp = context.getSharedPreferences(TogglTouch.STORAGE_NAME, 0);
         SharedPreferences.Editor spe = sp.edit();
         spe.clear();
         spe.commit();
@@ -52,7 +52,7 @@ public class TogglApi {
     private void setToken(String token) {
         apiToken = token;
 
-        SharedPreferences sp = context.getSharedPreferences(SettingActivity.API_TOKEN, 0);
+        SharedPreferences sp = context.getSharedPreferences(TogglTouch.STORAGE_NAME, 0);
         SharedPreferences.Editor spe = sp.edit();
         spe.putString(SettingActivity.API_TOKEN_KEY, apiToken);
         spe.commit();
@@ -98,7 +98,8 @@ public class TogglApi {
                         JSONObject obj = (JSONObject)data.get(i);
                         String description = obj.getString("description");
                         int id = obj.getInt("id");
-                        entries[i] = new Task(id, description);
+                        String started = obj.getString("start");
+                        entries[i] = new Task(id, description, started);
                     }
                     apiResponseDelegate.onSucceeded(entries);
                 } catch (JSONException e) {

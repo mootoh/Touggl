@@ -1,8 +1,8 @@
 package net.mootoh.toggltouch.test;
 
 import java.sql.SQLException;
+import java.util.Date;
 
-import net.mootoh.toggltouch.ApiResponseDelegate;
 import net.mootoh.toggltouch.Task;
 import net.mootoh.toggltouch.TaskSyncDelegate;
 
@@ -12,7 +12,7 @@ public final class TaskTest extends android.test.AndroidTestCase {
     }
 
     public void testNew() {
-        Task task = new Task(0, null);
+        Task task = new Task(0, null, new Date());
         assertNotNull(task);
     }
 
@@ -23,7 +23,7 @@ public final class TaskTest extends android.test.AndroidTestCase {
     }
 
     public void testSave() throws SQLException {
-        Task task = new Task(1, "a");
+        Task task = new Task(1, "a", new Date());
         task.save(getContext());
         Task[] tasks = Task.getAll(getContext());
         assertEquals(1, tasks.length);

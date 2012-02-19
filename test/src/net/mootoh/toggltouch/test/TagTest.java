@@ -1,6 +1,7 @@
 package net.mootoh.toggltouch.test;
 
 import java.sql.SQLException;
+import java.util.Date;
 
 import net.mootoh.toggltouch.Tag;
 import net.mootoh.toggltouch.Task;
@@ -48,7 +49,7 @@ public final class TagTest extends AndroidTestCase {
         Tag tag = newTag();
         tag.save(getContext());
 
-        Task task = new Task(0, null);
+        Task task = new Task(0, null, new Date());
         tag.assignTask(task, getContext());
         assertEquals(task.getId(), tag.taskId);
         
