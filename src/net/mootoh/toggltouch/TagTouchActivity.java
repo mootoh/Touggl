@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import org.json.JSONException;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.nfc.NfcAdapter;
@@ -183,10 +182,10 @@ public class TagTouchActivity extends Activity {
                 TogglApi api = new TogglApi(self);
                 try {
                     api.startTimeEntry(task, new ApiResponseDelegate<Integer>() {
-                        public void onSucceeded(Integer result) {
+                        public void onSucceeded(final Integer result) {
                             self.runOnUiThread(new Runnable() {
                                 public void run() {
-                                    Toast.makeText(self, task.getDescription() + " started.", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(self, task.getDescription() + " started: " + result, Toast.LENGTH_SHORT).show();
                                 }
                             });
                         }
