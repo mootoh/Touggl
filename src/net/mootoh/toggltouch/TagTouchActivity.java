@@ -3,7 +3,10 @@ package net.mootoh.toggltouch;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import org.json.JSONException;
+
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.nfc.NfcAdapter;
@@ -15,6 +18,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.RadioGroup;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 public class TagTouchActivity extends Activity {
@@ -169,17 +173,44 @@ public class TagTouchActivity extends Activity {
             }
         });
 
+        final Activity self = this;
         Button startButton = (Button)findViewById(R.id.startButton);
         startButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                decided();
-                // TODO: start the task
+                final Task task = decided();
+
+                // start the task
+                TogglApi api = new TogglApi(self);
+                try {
+                    api.startTimeEntry(task, new ApiResponseDelegate<Integer>() {
+                        public void onSucceeded(Integer result) {
+                            self.runOnUiThread(new Runnable() {
+                                public void run() {
+                                    Toast.makeText(self, task.getDescription() + " started.", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                        
+                        public void onFailed(Exception e) {
+                            self.runOnUiThread(new Runnable() {
+                                public void run() {
+                                    Toast.makeText(self, task.getDescription() + " failed in starting.", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    });
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                Toast.makeText(self, task.getDescription() + " starting...", Toast.LENGTH_SHORT).show();
+
                 finish();
             }
         });
     }
 
-    private void decided() {
+    private Task decided() {
         Tag tag = null;
         tag = new Tag(tagId, "a", selectedColor);
         try {
@@ -191,6 +222,7 @@ public class TagTouchActivity extends Activity {
         ListView taskListView = (ListView)findViewById(R.id.tagTouchTaskList);
         Task task = (Task)taskListView.getItemAtPosition(selectedTask);
         tag.assignTask(task, this);
+        return task;
     }
     
     private void showTaskSelection() {

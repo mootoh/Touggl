@@ -152,10 +152,6 @@ public class Task {
 
     }
 
-    public void startTimeEntry(Task timeEntry) {
-        // TODO Auto-generated method stub
-    }
-
     public static Task[] getAll(Context context) {
         DatabaseHelper dbHelper = new DatabaseHelper(context);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
