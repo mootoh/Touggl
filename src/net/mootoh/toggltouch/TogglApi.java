@@ -114,7 +114,7 @@ public class TogglApi {
      */
     public void startTimeEntry(final Task timeEntry, final ApiResponseDelegate<Integer> apiResponseDelegate) throws JSONException {
         assert(apiToken != null);
-        String timeEntryJsonString = timeEntry.toJsonString();
+        String timeEntryJsonString = timeEntry.toStartJsonString();
 
         new StartTimeEntryTask(apiToken, new JsonHttpResponseHandler() {
             public void onHttpResponse(JSONObject response) {

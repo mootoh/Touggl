@@ -4,7 +4,9 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
 import org.json.JSONException;
@@ -25,7 +27,6 @@ public class Task {
         formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
-    private static final String DURATION = "-1";
     private static final String BILLABLE = "false";
     private static final String CREATED_WITH = "TogglTouch";
 
@@ -67,14 +68,15 @@ public class Task {
         this.id = id;
     }
 
-    public String toJsonString() throws JSONException {
+    public String toStartJsonString() throws JSONException {
         JSONObject data = new JSONObject();
-        data.put("duration", DURATION);
-        data.put("billable", BILLABLE);
+        Calendar calendar = new GregorianCalendar();
+        long duration = -calendar.getTimeInMillis() / 1000;
+        data.put("duration", duration);
         data.put("created_with", CREATED_WITH);
 
-        data.put("start", dateAsISO8601(startedAt));
-        data.put("stop", dateAsISO8601(startedAt));
+        data.put("start", "null");
+        data.put("stop", "null");
         data.put("description", description);
 
         JSONObject json = new JSONObject();
