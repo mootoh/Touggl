@@ -8,5 +8,6 @@
     <string name="goAuth">Go</string>
     <string name="color_label">Pick a Color:</string>
     <string name="select_task_for_tag">Task to Assign:</string>
-
+    <string name="menu_done">Done</string>
+    <string name="menu_start">Start</string>
 </resources>

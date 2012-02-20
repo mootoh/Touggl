@@ -3,13 +3,15 @@ package net.mootoh.toggltouch;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.RadioGroup;
 import android.widget.ToggleButton;
@@ -35,11 +37,11 @@ public final class NewTagActivity extends Activity {
         setTitle("New Tag: " + tagId);
         setContentView(R.layout.tag_touch);
 
-        ViewGroup actionButtonLayout = (ViewGroup)findViewById(R.id.actionButtonLayout);
-        actionButtonLayout.setVisibility(View.INVISIBLE);
+        ActionBar actionBar = getActionBar();
+        actionBar.hide();
+
         setupColors();
         setupTaskList();
-        setupActionButtons();
         hideTaskSelection();
     }
     private void setupColors() {
@@ -79,37 +81,35 @@ public final class NewTagActivity extends Activity {
             taskList.add(task);
 
         ListView taskListView = (ListView)findViewById(R.id.tagTouchTaskList);
-        final Activity self = this;
         TaskArrayAdapter taskAdapter = new TaskArrayAdapter(this, R.layout.task_list_item, R.id.task_list_item_label, taskList);
         taskListView.setAdapter(taskAdapter);
 
         taskListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 selectedTask = position;
-                ViewGroup actionButtonLayout = (ViewGroup)self.findViewById(R.id.actionButtonLayout);
-                actionButtonLayout.setVisibility(View.VISIBLE);
+
+                ActionBar actionBar = getActionBar();
+                actionBar.show();
             }
         });
     }
 
-    private void setupActionButtons() {
-        Button doneButton = (Button)findViewById(R.id.doneButton);
-        doneButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                decided();
-                finish();
-            }
-        });
-
-        final Activity self = this;
-        Button startButton = (Button)findViewById(R.id.startButton);
-        startButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                Tag tag = decided();
-                tag.onTouched(self);
-                finish();
-            }
-        });
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+        case R.id.menu_done:
+            decided();
+            finish();
+            break;
+        case R.id.menu_start:
+            Tag tag = decided();
+            tag.onTouched(this);
+            finish();
+            break;
+        default:
+            break;
+        }
+        return true;
     }
 
     private Tag decided() {
@@ -141,4 +141,10 @@ public final class NewTagActivity extends Activity {
         list.setVisibility(View.INVISIBLE);
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.new_tag_activity, menu);
+        return true;
+    }
 }
