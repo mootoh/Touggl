@@ -27,7 +27,6 @@ public class Task {
         formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
-    private static final String BILLABLE = "false";
     private static final String CREATED_WITH = "TogglTouch";
 
     public static final String TABLE_NAME = "tasks";
