@@ -162,7 +162,7 @@ public final class Tag {
     public static Tag getCurrent(Context context) {
         SharedPreferences sp = context.getSharedPreferences(TogglTouch.STORAGE_NAME, 0);
         String current = sp.getString(CURRENT_TAG_KEY, null);
-        return Tag.get(current, context);
+        return current == null ? null : Tag.get(current, context);
     }
 
     public static void setCurrent(Context context, Tag tag) {

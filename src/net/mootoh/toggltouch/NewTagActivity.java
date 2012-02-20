@@ -8,6 +8,7 @@ import org.json.JSONException;
 import android.app.Activity;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -118,6 +119,7 @@ public final class NewTagActivity extends Activity {
                     api.startTimeEntry(task, new ApiResponseDelegate<Integer>() {
                         public void onSucceeded(final Integer result) {
                             task.setId(result.intValue());
+                            task.updateStartedAt();
                             try {
                                 task.save(self);
                             } catch (SQLException e) {

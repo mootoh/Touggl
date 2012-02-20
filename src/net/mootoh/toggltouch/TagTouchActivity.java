@@ -13,7 +13,6 @@ import android.widget.Toast;
 
 public class TagTouchActivity extends Activity {
     public static final String TAGID_KEY = "tagId";
-    private String tagId = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -23,40 +22,70 @@ public class TagTouchActivity extends Activity {
         if (! NfcAdapter.ACTION_TECH_DISCOVERED.equals(action))
             finish();
 
-        tagId = getTagId(getIntent());
+        String tagId = getTagId(getIntent());
         if (tagId == null)
             finish();
 
         if (Tag.isBrandNew(tagId, this))
-            newTag();
+            newTag(tagId);
         else
-            existingTag();
+            existingTag(tagId);
         finish();
     }
 
-    private void newTag() {
+    private void newTag(String tagId) {
         Intent intent = new Intent();
         intent.putExtra(TAGID_KEY, tagId);
         intent.setClass(this, NewTagActivity.class);
         startActivity(intent);
     }
 
-    private void existingTag() {
-        // else
-        //    start the task
-        //
+    private void existingTag(String tagId) {
+        final Tag tag = Tag.get(tagId, this);
+        assert(tag != null);
 
-        Tag tag = Tag.getCurrent(this);
         final Task task = Task.getTask(tag.taskId, this);
+
         final Activity self = this;
         TogglApi api = new TogglApi(this);
 
-        // if the tag is the current tag
-        if (tag != null && tag.id.equals(tagId)) {
+        Tag currentTag = Tag.getCurrent(this);
+        if (currentTag == null) {
+            // start the Task
+            try {
+                api.startTimeEntry(task, new ApiResponseDelegate<Integer>() {
+                    public void onSucceeded(Integer result) {
+                        task.setId(result.intValue());
+                        task.updateStartedAt();
+                        try {
+                            task.save(self);
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                        tag.assignTask(task, self);
+                        Tag.setCurrent(self, tag);
+                        self.runOnUiThread(new Runnable() {
+                            public void run() {
+                                Toast.makeText(self, task.getDescription() + " start.", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+
+                    public void onFailed(Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } else if (currentTag.id.equals(tagId)) {
+            Log.d(getClass().getSimpleName(), "stopping task id:" + task.getId());
             //  stop the task
             try {
                 api.stopTimeEntry(task, new ApiResponseDelegate<Integer>() {
                     public void onSucceeded(Integer result) {
+                        Log.d("StopTimeEntryDelegate", "onSucceeded: " + result);
+                        Tag.resetCurrent(self);
                         self.runOnUiThread(new Runnable() {
                             public void run() {
                                 Toast.makeText(self, task.getDescription() + " end.", Toast.LENGTH_SHORT).show();
@@ -73,29 +102,6 @@ public class TagTouchActivity extends Activity {
                 e.printStackTrace();
             }
         } else {
-            try {
-                api.startTimeEntry(task, new ApiResponseDelegate<Integer>() {
-                    public void onSucceeded(Integer result) {
-                        task.setId(result.intValue());
-                        try {
-                            task.save(self);
-                        } catch (SQLException e) {
-                            e.printStackTrace();
-                        }
-                        self.runOnUiThread(new Runnable() {
-                            public void run() {
-                                Toast.makeText(self, task.getDescription() + " start.", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    }
-
-                    public void onFailed(Exception e) {
-                        e.printStackTrace();
-                    }
-                });
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
         }
     }
 

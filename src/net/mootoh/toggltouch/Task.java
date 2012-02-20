@@ -146,6 +146,10 @@ public class Task {
             throw new SQLException("Faild to insert row for description:" + entry.getDescription());
     }
 
+    public void updateStartedAt() {
+        startedAt = new Date();
+    }
+
     public static Task getTask(String taskId, Context context) {
         String[] selectionArgs = {taskId};
 
@@ -224,10 +228,5 @@ public class Task {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         db.delete(Task.TABLE_NAME, null, null);
         db.close();
-    }
-
-    public static Task current() {
-        // TODO Auto-generated method stub
-        return null;
     }
 }
