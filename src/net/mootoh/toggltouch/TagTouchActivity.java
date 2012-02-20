@@ -41,32 +41,32 @@ public class TagTouchActivity extends Activity {
     }
 
     private void existingTag(String tagId) {
-        final Tag tag = Tag.get(tagId, this);
-        assert(tag != null);
+        final Tag touchedTag = Tag.get(tagId, this);
+        assert(touchedTag != null);
 
-        final Task task = Task.getTask(tag.taskId, this);
+        final Task touchedTask = Task.getTask(touchedTag.taskId, this);
 
         final Activity self = this;
-        TogglApi api = new TogglApi(this);
+        final TogglApi api = new TogglApi(this);
 
         Tag currentTag = Tag.getCurrent(this);
         if (currentTag == null) {
-            // start the Task
+            Log.d(getClass().getSimpleName(), "starting task id:" + touchedTask.getId());
             try {
-                api.startTimeEntry(task, new ApiResponseDelegate<Integer>() {
+                api.startTimeEntry(touchedTask, new ApiResponseDelegate<Integer>() {
                     public void onSucceeded(Integer result) {
-                        task.setId(result.intValue());
-                        task.updateStartedAt();
+                        touchedTask.setId(result.intValue());
+                        touchedTask.updateStartedAt();
                         try {
-                            task.save(self);
+                            touchedTask.save(self);
                         } catch (SQLException e) {
                             e.printStackTrace();
                         }
-                        tag.assignTask(task, self);
-                        Tag.setCurrent(self, tag);
+                        touchedTag.assignTask(touchedTask, self);
+                        Tag.setCurrent(self, touchedTag);
                         self.runOnUiThread(new Runnable() {
                             public void run() {
-                                Toast.makeText(self, task.getDescription() + " start.", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(self, touchedTask.getDescription() + " start.", Toast.LENGTH_SHORT).show();
                             }
                         });
                     }
@@ -79,16 +79,15 @@ public class TagTouchActivity extends Activity {
                 e.printStackTrace();
             }
         } else if (currentTag.id.equals(tagId)) {
-            Log.d(getClass().getSimpleName(), "stopping task id:" + task.getId());
-            //  stop the task
+            Log.d(getClass().getSimpleName(), "stopping task id:" + touchedTask.getId());
             try {
-                api.stopTimeEntry(task, new ApiResponseDelegate<Integer>() {
+                api.stopTimeEntry(touchedTask, new ApiResponseDelegate<Integer>() {
                     public void onSucceeded(Integer result) {
                         Log.d("StopTimeEntryDelegate", "onSucceeded: " + result);
                         Tag.resetCurrent(self);
                         self.runOnUiThread(new Runnable() {
                             public void run() {
-                                Toast.makeText(self, task.getDescription() + " end.", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(self, touchedTask.getDescription() + " end.", Toast.LENGTH_SHORT).show();
                             }
                         });
                     }
@@ -102,6 +101,55 @@ public class TagTouchActivity extends Activity {
                 e.printStackTrace();
             }
         } else {
+            Task currentTask = Task.getTask(currentTag.taskId, this);
+            Log.d(getClass().getSimpleName(), "stop & start : stopping current task id:" + currentTask.getId());
+            try {
+                api.stopTimeEntry(currentTask, new ApiResponseDelegate<Integer>() {
+                    public void onSucceeded(Integer result) {
+                        Log.d("StopTimeEntryDelegate", "onSucceeded: " + result);
+                        Tag.resetCurrent(self);
+                        self.runOnUiThread(new Runnable() {
+                            public void run() {
+                                Toast.makeText(self, touchedTask.getDescription() + " end.", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+
+                        try {
+                            api.startTimeEntry(touchedTask, new ApiResponseDelegate<Integer>() {
+                                public void onSucceeded(Integer result) {
+                                    touchedTask.setId(result.intValue());
+                                    touchedTask.updateStartedAt();
+                                    try {
+                                        touchedTask.save(self);
+                                    } catch (SQLException e) {
+                                        e.printStackTrace();
+                                    }
+                                    touchedTag.assignTask(touchedTask, self);
+                                    Tag.setCurrent(self, touchedTag);
+                                    self.runOnUiThread(new Runnable() {
+                                        public void run() {
+                                            Toast.makeText(self, touchedTask.getDescription() + " start.", Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                                }
+
+                                public void onFailed(Exception e) {
+                                    e.printStackTrace();
+                                }
+                            });
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    public void onFailed(Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+            } catch (JSONException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
     }
 
