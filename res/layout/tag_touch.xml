@@ -15,48 +15,39 @@
         android:text="@string/color_label"
         android:textSize="20sp" />
 
-    <LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/colorButtonLayout"
-        android:layout_width="match_parent"
+    <RadioGroup
+        android:id="@+id/colorRadioGroup"
+        android:layout_width="fill_parent"
         android:layout_height="52dip"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
         android:gravity="center_vertical"
         android:orientation="horizontal" >
 
-        <RadioGroup
-            android:id="@+id/colorRadioGroup"
-            android:layout_width="fill_parent"
+        <ToggleButton
+            android:id="@+id/radio0"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="horizontal" >
+            android:onClick="onToggle"
+            android:textOff=""
+            android:textOn="" />
 
-            <ToggleButton
-                android:id="@+id/radio0"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="onToggle"
-                android:textOff=""
-                android:textOn="" />
+        <ToggleButton
+            android:id="@+id/radio1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onToggle"
+            android:textOff=""
+            android:textOn="" />
 
-            <ToggleButton
-                android:id="@+id/radio1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="onToggle"
-                android:textOff=""
-                android:textOn="" />
-
-            <ToggleButton
-                android:id="@+id/radio2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="onToggle"
-                android:textOff=""
-                android:textOn="" />
-        </RadioGroup>
-    </LinearLayout>
+        <ToggleButton
+            android:id="@+id/radio2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onToggle"
+            android:textOff=""
+            android:textOn="" />
+    </RadioGroup>
 
     <TextView
         android:id="@+id/tagTouchMessageLabel"
@@ -97,7 +88,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Start" />
-
     </LinearLayout>
 
 </LinearLayout>
