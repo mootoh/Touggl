@@ -241,7 +241,7 @@ public final class Tag {
                 e.printStackTrace();
             }
         } else {
-            Task currentTask = Task.getTask(currentTag.taskId, activity);
+            final Task currentTask = Task.getTask(currentTag.taskId, activity);
             Log.d(getClass().getSimpleName(), "stop & start : stopping current task id:" + currentTask.getId());
             try {
                 api.stopTimeEntry(currentTask, new ApiResponseDelegate<Integer>() {
@@ -250,7 +250,7 @@ public final class Tag {
                         Tag.resetCurrent(activity);
                         activity.runOnUiThread(new Runnable() {
                             public void run() {
-                                Toast.makeText(activity, touchedTask.getDescription() + " end.", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(activity, currentTask.getDescription() + " end.", Toast.LENGTH_SHORT).show();
                             }
                         });
 
