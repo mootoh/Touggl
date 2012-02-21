@@ -216,4 +216,8 @@ public class Task {
         db.delete(Task.TABLE_NAME, null, null);
         db.close();
     }
+
+    public Date getStartedAt() {
+        return startedAt;
+    }
 }

@@ -9,6 +9,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.util.Collection;
+import java.util.HashMap;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -91,17 +93,29 @@ public class TogglApi {
                     apiResponseDelegate.onFailed(null);
                     return;
                 }
+
                 try {
+                    HashMap<String, Task> taskMap = new HashMap<String, Task>();
+
                     JSONArray data = response.getJSONArray("data");
-                    Task[] entries = new Task[data.length()];
                     for (int i=0; i<data.length(); i++) {
                         JSONObject obj = (JSONObject)data.get(i);
                         String description = obj.getString("description");
                         int id = obj.getInt("id");
                         String started = obj.getString("start");
-                        entries[i] = new Task(id, description, started);
+                        Task task = new Task(id, description, started);
+                        Task existingTask = taskMap.get(description);
+                        if (existingTask == null) {
+                            taskMap.put(description, task);
+                        } else if (task.getStartedAt().compareTo(existingTask.getStartedAt()) > 0) {
+                            taskMap.remove(description);
+                            taskMap.put(description, task);
+                        }
                     }
-                    apiResponseDelegate.onSucceeded(entries);
+                    Collection <Task> values = taskMap.values();
+                    Task[] tasks = new Task[values.size()];
+                    values.toArray(tasks);
+                    apiResponseDelegate.onSucceeded(tasks);
                 } catch (JSONException e) {
                     apiResponseDelegate.onFailed(e);
                 }
@@ -182,17 +196,6 @@ public class TogglApi {
 
     public String __debug__getValidPassword() {
         return context.getString(R.string.valid_password);
-    }
-
-    public void syncTasks() {
-        assert(hasToken());
-        getTimeEntries(new ApiResponseDelegate<Task[]>() {
-            public void onSucceeded(Task[] result) {
-            }
-            
-            public void onFailed(Exception e) {
-            }
-        });
     }
 }
 
