@@ -44,6 +44,7 @@ public final class NewTagActivity extends Activity {
         setupTaskList();
         hideTaskSelection();
     }
+
     private void setupColors() {
         final RadioGroup radioGroup = (RadioGroup)findViewById(R.id.colorRadioGroup);
 

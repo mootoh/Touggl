@@ -8,19 +8,15 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 public class SettingActivity extends Activity {
     protected static final String API_TOKEN = "toggl_api_token";
     protected static final String API_TOKEN_KEY = "token";
-    protected static final String TAGID_EXTRA = "tagId";
     protected static final int    API_TOKEN_RESULT = 1;
+
     private ArrayAdapter<Task> taskAdapter;
     private TogglApi api;
 
@@ -86,50 +82,6 @@ public class SettingActivity extends Activity {
                 });
             }
         });
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        Log.d(getClass().getSimpleName(), "onResume");
-
-        Intent intent = getIntent();
-        if (intent == null)
-            return;
-
-        Bundle extras = intent.getExtras();
-        if (extras == null)
-            return;
-
-        final String tagId = extras.getString(TAGID_EXTRA);
-        if (tagId != null) {
-            intent.removeExtra(TAGID_EXTRA); // Android OS calls onResume multiple times if the app is in background...
-
-            Log.d(getClass().getSimpleName(), "tagId:" + tagId);
-            TextView messageLabel = (TextView)findViewById(R.id.messageLabel);
-            messageLabel.setText("Pick a task for this Tag:" + tagId);
-
-            ListView taskListView = (ListView)findViewById(R.id.taskList);
-            final Context self = this;
-            taskListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    LinearLayout layout = (LinearLayout)view;
-                    TextView textView = (TextView)layout.findViewById(R.id.task_list_item_label);
-                    Toast toast = Toast.makeText(self, "clicked " + textView.getText() + ", id:" + id + ", position:" + position, Toast.LENGTH_SHORT);
-                    toast.show();
-
-                    Tag tag = null;
-                    if (Tag.isBrandNew(tagId, self)) {
-//                        tag = new Tag(tagId, null, null);
-                        tag = new Tag(tagId, "a", "b");
-                    } else {
-                        tag = Tag.get(tagId, self);
-                    }
-                    tag.assignTask((Task)parent.getItemAtPosition(position), self);
-                }
-            });
-        }
     }
 
     @Override
