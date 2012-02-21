@@ -133,18 +133,6 @@ public class Task {
             throw new SQLException("Faild to insert row for description:" + description);
     }
 
-    public void addTimeEntry(Task entry, Context context) throws SQLException {
-        ContentValues values = new ContentValues();
-        values.put("description", entry.getDescription());
-
-        DatabaseHelper dbHelper = new DatabaseHelper(context);
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        long rowId = db.insert("timeEntries", null, values);
-        db.close();
-        if (rowId <= 0)
-            throw new SQLException("Faild to insert row for description:" + entry.getDescription());
-    }
-
     public void updateStartedAt() {
         startedAt = new Date();
     }

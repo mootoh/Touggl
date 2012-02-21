@@ -132,38 +132,6 @@ public class SettingActivity extends Activity {
         }
     }
 
-/*
-    private Task[] getTasks(final TogglTouchProvider pStorage) {
-        api.getTimeEntries(new ApiResponseDelegate<Task[]>() {
-            public void onSucceeded(Task[] timeEntries) {
-                Set <String> descriptions = new HashSet <String>();
-                for (Task timeEntry : timeEntries)
-                    descriptions.add(timeEntry.getDescription());
-
-                tasks = timeEntries;
-
-                for (String description: descriptions) {
-                    try {
-                        Task.save(description);
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                runOnUiThread(new Runnable() {
-                    public void run() {
-                        taskAdapter.notifyDataSetChanged();
-                    }
-                });
-            }
-
-            public void onFailed(Exception e) {
-                Log.d(getClass().getSimpleName(), "failed in retrieving task entries");
-            }
-        });
-        return null;
-    }
-*/
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
