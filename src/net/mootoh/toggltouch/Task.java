@@ -101,24 +101,13 @@ public class Task {
         return json.toString();
     }
 
+    public void updateStartedAt() {
+        startedAt = new Date();
+    }
+
     // ----------------------------------------------------------------------------------
     // DB
     //
-    public void save(JSONObject json, Context context) throws SQLException, JSONException {
-        String description;
-        description = json.getString("description");
-
-        ContentValues values = new ContentValues();
-        values.put("description", description);
-
-        DatabaseHelper dbHelper = new DatabaseHelper(context);
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        long rowId = db.insert("timeEntries", null, values);
-        db.close();
-        if (rowId <= 0)
-            throw new SQLException("Faild to insert row for description:" + description);
-    }
-
     public void save(Context context) throws SQLException {
         ContentValues values = new ContentValues();
         values.put(COLUMN_NAME_ID, id);
@@ -133,8 +122,19 @@ public class Task {
             throw new SQLException("Faild to insert row for description:" + description);
     }
 
-    public void updateStartedAt() {
-        startedAt = new Date();
+    public void update(Context context) throws SQLException {
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_NAME_ID, id);
+        values.put(COLUMN_NAME_STARTED, formatter.format(startedAt));
+
+        DatabaseHelper dbHelper = new DatabaseHelper(context);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        String args[] = {description};
+        int ret = db.update(TABLE_NAME, values, COLUMN_NAME_DESCRIPTION + " is ?", args);
+        db.close();
+        if (ret != 1)
+            throw new SQLException("Faild to update the row for description:" + description);
     }
 
     public static Task getTask(String taskId, Context context) {

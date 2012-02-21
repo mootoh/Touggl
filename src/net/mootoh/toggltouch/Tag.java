@@ -198,7 +198,7 @@ public final class Tag {
                         touchedTask.setId(result.intValue());
                         touchedTask.updateStartedAt();
                         try {
-                            touchedTask.save(activity);
+                            touchedTask.update(activity);
                         } catch (SQLException e) {
                             e.printStackTrace();
                         }
@@ -260,7 +260,7 @@ public final class Tag {
                                     touchedTask.setId(result.intValue());
                                     touchedTask.updateStartedAt();
                                     try {
-                                        touchedTask.save(activity);
+                                        touchedTask.update(activity);
                                     } catch (SQLException e) {
                                         e.printStackTrace();
                                     }
