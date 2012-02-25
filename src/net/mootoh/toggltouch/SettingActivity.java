@@ -61,6 +61,10 @@ public class SettingActivity extends Activity {
         Button syncButton = (Button)findViewById(R.id.syncButton);
         syncButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                Intent intent = new Intent(TouchService.ACTION_START);
+                intent.putExtra(TouchService.TASK_DESCRIPTION, "aa");
+                startService(intent);
+
                 syncTasks();
             }
         });

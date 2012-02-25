@@ -7,13 +7,16 @@ import java.util.ArrayList;
 import org.json.JSONException;
 
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
-import android.widget.Toast;
 
 public final class Tag {
     public String id;
@@ -204,11 +207,7 @@ public final class Tag {
                         }
                         self.assignTask(touchedTask, activity);
                         Tag.setCurrent(activity, self);
-                        activity.runOnUiThread(new Runnable() {
-                            public void run() {
-                                Toast.makeText(activity, touchedTask.getDescription() + " start.", Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                        self.postNotification(touchedTask, true, activity);
                     }
 
                     public void onFailed(Exception e) {
@@ -225,11 +224,7 @@ public final class Tag {
                     public void onSucceeded(Integer result) {
                         Log.d("StopTimeEntryDelegate", "onSucceeded: " + result);
                         Tag.resetCurrent(activity);
-                        activity.runOnUiThread(new Runnable() {
-                            public void run() {
-                                Toast.makeText(activity, touchedTask.getDescription() + " end.", Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                        postNotification(touchedTask, false, activity);
                     }
 
                     public void onFailed(Exception e) {
@@ -248,11 +243,7 @@ public final class Tag {
                     public void onSucceeded(Integer result) {
                         Log.d("StopTimeEntryDelegate", "onSucceeded: " + result);
                         Tag.resetCurrent(activity);
-                        activity.runOnUiThread(new Runnable() {
-                            public void run() {
-                                Toast.makeText(activity, currentTask.getDescription() + " end.", Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                        postNotification(currentTask, false, activity);
 
                         try {
                             api.startTimeEntry(touchedTask, new ApiResponseDelegate<Integer>() {
@@ -266,11 +257,7 @@ public final class Tag {
                                     }
                                     self.assignTask(touchedTask, activity);
                                     Tag.setCurrent(activity, self);
-                                    activity.runOnUiThread(new Runnable() {
-                                        public void run() {
-                                            Toast.makeText(activity, touchedTask.getDescription() + " start.", Toast.LENGTH_SHORT).show();
-                                        }
-                                    });
+                                    postNotification(touchedTask, false, activity);
                                 }
 
                                 public void onFailed(Exception e) {
@@ -291,5 +278,11 @@ public final class Tag {
                 e.printStackTrace();
             }
         }
+    }
+
+    private void postNotification(Task task, boolean started, Activity activity) {
+        Intent intent = new Intent(started ? TouchService.ACTION_START : TouchService.ACTION_STOP);
+        intent.putExtra(TouchService.TASK_DESCRIPTION, task.getDescription());
+        activity.startService(intent);
     }
 }
