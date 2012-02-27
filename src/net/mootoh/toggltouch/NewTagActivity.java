@@ -87,12 +87,30 @@ public final class NewTagActivity extends Activity {
 
         taskListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                selectedTask = position;
+                if (selectedTask != -1) {
+                    View prevRow = parent.getChildAt(selectedTask);
+                    deselectRow(prevRow);
+                }
+
+                selectRow(position, view);
 
                 ActionBar actionBar = getActionBar();
                 actionBar.show();
             }
         });
+    }
+
+    private void deselectRow(View view) {
+        View colorView = view.findViewById(R.id.task_list_item_color);
+        colorView.setBackgroundColor(TaskArrayAdapter.NONASSIGNED_COLOR);
+    }
+
+    private void selectRow(int row, View view) {
+        selectedTask = row;
+
+        View colorView = view.findViewById(R.id.task_list_item_color);
+        int color = Color.parseColor(selectedColor);
+        colorView.setBackgroundColor(color);
     }
 
     @Override
