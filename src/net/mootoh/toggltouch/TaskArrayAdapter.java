@@ -1,7 +1,5 @@
 package net.mootoh.toggltouch;
 
-import java.util.ArrayList;
-
 import android.content.Context;
 import android.graphics.Color;
 import android.view.LayoutInflater;
@@ -25,14 +23,20 @@ public final class TaskArrayAdapter extends ArrayAdapter<Task> {
             view = inflater.inflate(R.layout.task_list_item, null);
         }
 
+        View colorView = view.findViewById(R.id.task_list_item_color);
+        TextView label = (TextView)view.findViewById(R.id.task_list_item_label);
+
         Task task = (Task)getItem(position);
         Tag tag = Tag.getForTaskId(task.getId(), getContext());
 
-        View colorView = view.findViewById(R.id.task_list_item_color);
-        int color = (tag == null) ? NONASSIGNED_COLOR : Color.parseColor(tag.color);
-        colorView.setBackgroundColor(color);
+        if (tag == null) {
+            colorView.setBackgroundColor(NONASSIGNED_COLOR);
+            label.setTextColor(Color.BLACK);
+        } else {
+            colorView.setBackgroundColor(Color.parseColor(tag.color));
+            label.setTextColor(Color.GRAY);
+        }
 
-        TextView label = (TextView)view.findViewById(R.id.task_list_item_label);
         label.setText(task.getDescription());
 
         return view;

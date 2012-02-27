@@ -2,6 +2,7 @@ package net.mootoh.toggltouch;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Comparator;
 
 import android.app.ActionBar;
 import android.app.Activity;
@@ -82,12 +83,39 @@ public final class NewTagActivity extends Activity {
             taskList.add(task);
 
         ListView taskListView = (ListView)findViewById(R.id.tagTouchTaskList);
-        TaskArrayAdapter taskAdapter = new TaskArrayAdapter(this, R.layout.task_list_item, R.id.task_list_item_label);
+
+        final Activity self = this;
+        final TaskArrayAdapter taskAdapter = new TaskArrayAdapter(this, R.layout.task_list_item, R.id.task_list_item_label);
         taskAdapter.addAll(tasks);
+        taskAdapter.sort(new Comparator<Task>() {
+            public int compare(Task lhs, Task rhs) {
+                Tag ltag = Tag.getForTaskId(lhs.getId(), self);
+                Tag rtag = Tag.getForTaskId(rhs.getId(), self);
+                if (ltag == null) {
+                    if (rtag == null)
+                        return lhs.getDescription().compareTo(rhs.getDescription());
+                    return -1;
+                }
+                if (rtag == null)
+                    return 1;
+                return lhs.getDescription().compareTo(rhs.getDescription());
+            };
+
+            @Override
+            public boolean equals(Object o) {
+                return super.equals(o);
+            }
+        });
+
         taskListView.setAdapter(taskAdapter);
 
         taskListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Task task = (Task)taskAdapter.getItem(position);
+                Tag tag = Tag.getForTaskId(task.getId(), self);
+                if (tag != null)
+                    return;
+
                 if (selectedTask != -1) {
                     View prevRow = parent.getChildAt(selectedTask);
                     deselectRow(prevRow);
