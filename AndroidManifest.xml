@@ -57,6 +57,7 @@
             android:exported="false" >
             <intent-filter>
                 <action android:name="net.mootoh.toggltouch.START_TASK" />
+                <action android:name="net.mootoh.toggltouch.STOP_TASK" />
             </intent-filter>
         </service>
     </application>

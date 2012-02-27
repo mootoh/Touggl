@@ -2,7 +2,6 @@ package net.mootoh.toggltouch;
 
 import android.app.Notification;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -38,15 +37,9 @@ public final class TouchService extends Service {
             .setAutoCancel(true)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle("TogglTouch")
-            .setContentText("Yey!");
+            .setContentText("Current Task: " + taskDescription);
         
         Notification notification = nbuilder.getNotification();
-/*
-        Context context = getApplicationContext();
-        Intent notificationIntent = new Intent(context, SettingActivity.class);
-        PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
-        notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
-*/
         notificationManager.notify(TASK_NOTIFICATION_ID, notification);
         
         return START_STICKY;
