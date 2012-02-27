@@ -98,6 +98,7 @@ public class TogglApi {
                     HashMap<String, Task> taskMap = new HashMap<String, Task>();
 
                     JSONArray data = response.getJSONArray("data");
+                    Log.d(getClass().getSimpleName(), "TimeEntries size:" + data.length());
                     for (int i=0; i<data.length(); i++) {
                         JSONObject obj = (JSONObject)data.get(i);
                         String description = obj.getString("description");

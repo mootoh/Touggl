@@ -196,7 +196,7 @@ public final class Tag {
                 api.startTimeEntry(touchedTask, new ApiResponseDelegate<Integer>() {
                     public void onSucceeded(Integer result) {
                         touchedTask.setId(result.intValue());
-                        touchedTask.updateStartedAt();
+                        touchedTask.updateStartedAtToNow();
                         try {
                             touchedTask.update(activity);
                         } catch (SQLException e) {
@@ -246,7 +246,7 @@ public final class Tag {
                             api.startTimeEntry(touchedTask, new ApiResponseDelegate<Integer>() {
                                 public void onSucceeded(Integer result) {
                                     touchedTask.setId(result.intValue());
-                                    touchedTask.updateStartedAt();
+                                    touchedTask.updateStartedAtToNow();
                                     try {
                                         touchedTask.update(activity);
                                     } catch (SQLException e) {

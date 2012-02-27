@@ -67,6 +67,14 @@ public class Task {
         this.id = id;
     }
 
+    public void setStartedAt(Date date) {
+        this.startedAt = date;
+    }
+
+    public void updateStartedAtToNow() {
+        startedAt = new Date();
+    }
+
     public String toStartJsonString() throws JSONException {
         JSONObject data = new JSONObject();
         Calendar calendar = new GregorianCalendar();
@@ -99,10 +107,6 @@ public class Task {
         JSONObject json = new JSONObject();
         json.put("time_entry", data);
         return json.toString();
-    }
-
-    public void updateStartedAt() {
-        startedAt = new Date();
     }
 
     // ----------------------------------------------------------------------------------
@@ -162,6 +166,31 @@ public class Task {
         return task;
     }
 
+    public static Task getTaskForDescription(String description, Context context) {
+        String[] selectionArgs = {description};
+
+        DatabaseHelper dbHelper = new DatabaseHelper(context);
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_NAME, null, COLUMN_NAME_DESCRIPTION + " is ?", selectionArgs, null, null, null);
+        Task task = null;
+        if (cursor.moveToFirst()) {
+            String dateString = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_STARTED));
+            try {
+                Date started = formatter.parse(dateString);
+                task = new Task(
+                        cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_ID)),
+                        cursor.getString(cursor.getColumnIndex(COLUMN_NAME_DESCRIPTION)),
+                        started
+                        );
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+        cursor.close();
+        db.close();
+        return task;
+    }
+
     public static Task[] getAll(Context context) {
         DatabaseHelper dbHelper = new DatabaseHelper(context);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
@@ -187,23 +216,41 @@ public class Task {
         tasks.toArray(ret);
         return ret;
     }
-    
+
     public static void sync(final Context context, final TaskSyncDelegate delegate) {
         TogglApi api = new TogglApi(context);
         api.getTimeEntries(new ApiResponseDelegate<Task[]>() {
             public void onSucceeded(Task[] result) {
-                // TODO: re-link relation between Tag-Task
                 for (Task task: result) {
-                    try {
-                        task.save(context);
-                    } catch (SQLException e) {
-                        delegate.onFailed(e);
-                        return;
+                    Task existingTask = getTaskForDescription(task.description, context);
+                    if (existingTask == null) {
+                        try {
+                            task.save(context);
+                        } catch (SQLException e) {
+                            delegate.onFailed(e);
+                            return;
+                        }
+                    } else {
+                        if (existingTask.getId().equals(task.getId()))
+                            continue;
+
+                        // re-link relation between Tag-Task
+                        Tag tag = Tag.getForTaskId(existingTask.getId(), context);
+
+                        existingTask.setId(task.id);
+                        existingTask.setStartedAt(task.getStartedAt());
+                        try {
+                            existingTask.update(context);
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                        if (tag != null)
+                            tag.assignTask(existingTask, context);
                     }
                 }
                 delegate.onSucceeded(result);
             }
-            
+
             public void onFailed(Exception e) {
                 delegate.onFailed(e);
             }
