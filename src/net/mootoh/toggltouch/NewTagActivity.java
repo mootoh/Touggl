@@ -82,7 +82,8 @@ public final class NewTagActivity extends Activity {
             taskList.add(task);
 
         ListView taskListView = (ListView)findViewById(R.id.tagTouchTaskList);
-        TaskArrayAdapter taskAdapter = new TaskArrayAdapter(this, R.layout.task_list_item, R.id.task_list_item_label, taskList);
+        TaskArrayAdapter taskAdapter = new TaskArrayAdapter(this, R.layout.task_list_item, R.id.task_list_item_label);
+        taskAdapter.addAll(tasks);
         taskListView.setAdapter(taskAdapter);
 
         taskListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {

@@ -13,8 +13,8 @@ import android.widget.TextView;
 public final class TaskArrayAdapter extends ArrayAdapter<Task> {
     static final int NONASSIGNED_COLOR = Color.WHITE;
 
-    public TaskArrayAdapter(Context context, int resource, int textViewResourceId, ArrayList<Task> taskList) {
-        super(context, resource, textViewResourceId, taskList);
+    public TaskArrayAdapter(Context context, int resource, int textViewResourceId) {
+        super(context, resource, textViewResourceId);
     }
 
     @Override

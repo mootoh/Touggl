@@ -37,14 +37,21 @@ public class SettingActivity extends Activity {
         setupSyncButton();
         setupClearButton();
 
+        ListView taskListView = (ListView)findViewById(R.id.taskList);
+        taskAdapter = new TaskArrayAdapter(this, R.layout.task_list_item, R.id.task_list_item_label);
+        taskListView.setAdapter(taskAdapter);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
         Task[] tasks = Task.getAll(this);
         ArrayList<Task> taskList = new ArrayList<Task>();
         for (Task task : tasks)
             taskList.add(task);
 
-        ListView taskListView = (ListView)findViewById(R.id.taskList);
-        taskAdapter = new TaskArrayAdapter(this, R.layout.task_list_item, R.id.task_list_item_label, taskList);
-        taskListView.setAdapter(taskAdapter);
+        updateTaskList(tasks);
     }
 
     private void updateTaskList(final Task[] tasks) {
@@ -97,7 +104,7 @@ public class SettingActivity extends Activity {
 
         String apiToken = data.getStringExtra(API_TOKEN_KEY);
         Log.d(getClass().getSimpleName(), "got result token: " + apiToken);
- 
+
         syncTasks();
     }
 
@@ -106,7 +113,7 @@ public class SettingActivity extends Activity {
             public void onSucceeded(Task[] result) {
                 updateTaskList(result);
             }
-            
+
             public void onFailed(Exception e) {
                 e.printStackTrace();
             }
