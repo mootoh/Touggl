@@ -31,29 +31,30 @@ public final class TouchService extends Service {
         String action = intent.getAction();
         String taskDescription = intent.getExtras().getString(TASK_DESCRIPTION);
 
-        String msg = taskDescription + (action.equals(ACTION_START) ? " started." : " stopped.");
+        boolean started = action.equals(ACTION_START);
+        String msg = taskDescription + (started ? " started." : " stopped.");
         Notification.Builder nbuilder = new Notification.Builder(this)
-            .setTicker(msg)
-            .setAutoCancel(true)
-            .setSmallIcon(R.drawable.ic_notification)
+        .setTicker(msg)
+        .setAutoCancel(true)
+        .setSmallIcon(R.drawable.ic_notification); // TODO: use nice icon
+
+        if (started) {
+            nbuilder
             .setContentTitle("TogglTouch")
             .setContentText("Current Task: " + taskDescription);
-        
+        }
+
         Notification notification = nbuilder.getNotification();
         notificationManager.notify(TASK_NOTIFICATION_ID, notification);
-        
+
+        if (! started)
+            notificationManager.cancel(TASK_NOTIFICATION_ID); // clear the message from notification panel.
+
         return START_STICKY;
     }
 
     @Override
-    public void onDestroy() {
-        Log.d(getClass().getSimpleName(), "destroying");
-        super.onDestroy();
-    }
-
-    @Override
     public IBinder onBind(Intent intent) {
-        // TODO Auto-generated method stub
         return null;
     }
 }
