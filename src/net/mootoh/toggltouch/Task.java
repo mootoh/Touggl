@@ -22,7 +22,7 @@ public class Task {
     private String description;
     private Date startedAt;
 
-    private static java.text.DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    private static java.text.DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
     static {
         formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
