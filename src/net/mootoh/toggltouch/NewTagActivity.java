@@ -22,12 +22,19 @@ public final class NewTagActivity extends Activity {
     private String tagId = null;
     private int selectedTask = -1;
 
-    final String[] colors = {
+    static final String[] colors = {
             "#ff7f00",
             "#ff007f",
             "#66ff66",
+            "#007fff",
             "#ffff66",
-            "#007fff"
+            "#cc66ff",
+            "#4c4c4c",
+            "#804000",
+            "#008040",
+            "#004080",
+            "#800000",
+            "#000000"
     };
 
     @Override
@@ -48,10 +55,14 @@ public final class NewTagActivity extends Activity {
 
     private void setupColors() {
         final RadioGroup radioGroup = (RadioGroup)findViewById(R.id.colorRadioGroup);
+        
+        String[] unusedColors = collectUnusedColors();
 
         for (int j = 0; j < radioGroup.getChildCount(); j++) {
             final ToggleButton toggleButton = (ToggleButton) radioGroup.getChildAt(j);
-            toggleButton.setBackgroundColor(Color.parseColor(colors[j]));
+            String color = unusedColors[j];
+            toggleButton.setTag(color);
+            toggleButton.setBackgroundColor(Color.parseColor(color));
             toggleButton.setAlpha(0.3f);
         }
 
@@ -64,11 +75,29 @@ public final class NewTagActivity extends Activity {
                     toggleButton.setAlpha(checked ? 1.0f : 0.3f);
 
                     if (checked)
-                        selectedColor = colors[j];
+                        selectedColor = (String)toggleButton.getTag();
                 }
                 showTaskSelection();
             }
         });
+    }
+
+    private String[] collectUnusedColors() {
+        Tag[] tags = Tag.getAll(this);
+        if (tags.length > colors.length)
+            return colors;
+
+        ArrayList <String> unusedColors = new ArrayList<String>();
+        for (String color : colors)
+            unusedColors.add(color);
+
+        for (Tag tag : tags) {
+            unusedColors.remove(tag.color);
+        }
+        
+        String[] ret = new String[unusedColors.size()];
+        unusedColors.toArray(ret);
+        return ret;
     }
 
     public void onToggle(View view) {
