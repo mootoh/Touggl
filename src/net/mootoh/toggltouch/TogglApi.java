@@ -108,7 +108,7 @@ public class TogglApi {
                         Task existingTask = taskMap.get(description);
                         if (existingTask == null) {
                             taskMap.put(description, task);
-                        } else if (task.getStartedAt().compareTo(existingTask.getStartedAt()) > 0) {
+                        } else if (task.getStartedAt() != null && task.getStartedAt().compareTo(existingTask.getStartedAt()) > 0) {
                             taskMap.remove(description);
                             taskMap.put(description, task);
                         }

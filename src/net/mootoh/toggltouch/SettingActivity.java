@@ -106,7 +106,12 @@ public class SettingActivity extends Activity {
         Log.d(getClass().getSimpleName(), "got result token: " + apiToken);
 
         syncTasks();
-    }
+
+        Intent intent = new Intent();
+        intent.setClass(getApplicationContext(), InstructionActivity.class);
+        startActivity(intent);
+        finish();
+   }
 
     private void syncTasks() {
         Task.sync(this, new TaskSyncDelegate() {
