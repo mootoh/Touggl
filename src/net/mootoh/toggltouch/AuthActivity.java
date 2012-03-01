@@ -7,11 +7,13 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class AuthActivity extends Activity implements ApiResponseDelegate<String> {
     Button submitButton;
     ProgressBar loginProgressBar;
+    TextView loginProgressText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,6 +22,8 @@ public class AuthActivity extends Activity implements ApiResponseDelegate<String
         loginProgressBar = (ProgressBar)findViewById(R.id.loginProgressBar);
         loginProgressBar.setEnabled(false);
         loginProgressBar.setVisibility(ProgressBar.INVISIBLE);
+        loginProgressText = (TextView)findViewById(R.id.loginProgressText);
+        loginProgressText.setVisibility(View.INVISIBLE);
 
         submitButton = (Button)findViewById(R.id.authSubmitButton);
         final EditText emailText = (EditText)findViewById(R.id.emailText);
@@ -42,7 +46,8 @@ public class AuthActivity extends Activity implements ApiResponseDelegate<String
                 submitButton.setEnabled(false);
                 loginProgressBar.setEnabled(true);
                 loginProgressBar.setVisibility(ProgressBar.VISIBLE);
-
+                loginProgressText.setVisibility(View.VISIBLE);
+                
                 // send a request to toggl server to obtain API token
                 api.requestApiToken(name, password, self);
             }
@@ -69,6 +74,7 @@ public class AuthActivity extends Activity implements ApiResponseDelegate<String
                 // stop the progress indicator
                 submitButton.setEnabled(true);
                 loginProgressBar.setVisibility(ProgressBar.INVISIBLE);
+                loginProgressText.setVisibility(View.INVISIBLE);
             }
         });
     }
