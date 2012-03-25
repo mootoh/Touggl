@@ -3,13 +3,13 @@ package net.mootoh.toggltouch;
 import java.util.ArrayList;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
 
 public class SettingActivity extends Activity {
@@ -24,6 +24,7 @@ public class SettingActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         api = new TogglApi(this);
 
         if (! api.hasToken()) {
@@ -34,15 +35,42 @@ public class SettingActivity extends Activity {
 
         setContentView(R.layout.setting);
 
-        setupSyncButton();
-        setupClearButton();
-
         ListView taskListView = (ListView)findViewById(R.id.taskList);
         taskAdapter = new TaskArrayAdapter(this, R.layout.task_list_item, R.id.task_list_item_label);
         taskListView.setAdapter(taskAdapter);
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.setting_activity, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        final SettingActivity self = this;
+
+        switch (item.getItemId()) {
+        case R.id.menu_sync:
+            syncTasks();
+            break;
+        case R.id.menu_clear:
+            Tag.clear(self);
+            Task.clear(self);
+
+            runOnUiThread(new Runnable() {
+                public void run() {
+                    taskAdapter.clear();
+                    taskAdapter.notifyDataSetChanged();
+                }
+            });
+            break;
+        }
+        return true;
+    }
+
+   @Override
     protected void onResume() {
         super.onResume();
 
@@ -60,33 +88,6 @@ public class SettingActivity extends Activity {
                 taskAdapter.clear();
                 taskAdapter.addAll(tasks);
                 taskAdapter.notifyDataSetChanged();
-            }
-        });
-    }
-
-    private void setupSyncButton() {
-        Button syncButton = (Button)findViewById(R.id.syncButton);
-        syncButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                syncTasks();
-            }
-        });
-    }
-
-    private void setupClearButton() {
-        final Context self = this;
-        Button clearButton = (Button)findViewById(R.id.clearButton);
-        clearButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                Tag.clear(self);
-                Task.clear(self);
-
-                runOnUiThread(new Runnable() {
-                    public void run() {
-                        taskAdapter.clear();
-                        taskAdapter.notifyDataSetChanged();
-                    }
-                });
             }
         });
     }

@@ -1,7 +1,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:orientation="vertical" >
+    android:orientation="vertical" android:padding="10dp">
 
     <TextView
         android:layout_width="fill_parent"
@@ -36,12 +36,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" >
 
-        <Button
-            android:id="@+id/authSubmitButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/goAuth" />
-
         <TextView
             android:id="@+id/loginProgressText"
             android:layout_width="wrap_content"
@@ -56,5 +50,12 @@
             android:indeterminate="true"
             android:indeterminateOnly="true" android:paddingLeft="8dp"/>
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:autoLink="web"
+        android:text="@string/auth_navigate_to_toggl"></TextView>
 
 </LinearLayout>

@@ -4,26 +4,6 @@
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
-    <LinearLayout
-        android:id="@+id/linearLayout1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal" >
-
-        <Button
-            android:id="@+id/syncButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Sync" />
-
-        <Button
-            android:id="@+id/clearButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Clear" />
-
-    </LinearLayout>
-
     <TextView
         android:id="@+id/messageLabel"
         android:layout_width="fill_parent"
