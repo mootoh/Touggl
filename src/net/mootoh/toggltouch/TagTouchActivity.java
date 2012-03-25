@@ -12,6 +12,13 @@ public class TagTouchActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        TogglApi api = new TogglApi(this);
+
+        if (! api.hasToken()) {
+            finish();
+            return;
+        }
 
         String action = getIntent().getAction();
         if (! NfcAdapter.ACTION_TECH_DISCOVERED.equals(action))
