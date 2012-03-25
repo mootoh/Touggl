@@ -10,4 +10,6 @@
     <string name="select_task_for_tag">Task to Assign:</string>
     <string name="menu_done">Done</string>
     <string name="menu_start">Start</string>
+    <string name="auth_navigate_to_toggl">If you do not have a Toggl account, get one free at <a href="http://www.toggl.com">http://www.toggl.com</a>.</string>
+    <string name="instruction_steps">1. Add a few time entries on Toggl.\n2.Touch a NFC tag with your phone.</string>
 </resources>

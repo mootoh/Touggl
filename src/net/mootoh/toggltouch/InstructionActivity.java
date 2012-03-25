@@ -14,6 +14,8 @@ public final class InstructionActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.instruction);
 
+        setTitle("How to start");
+
         ActionBar actionBar = getActionBar();
         actionBar.show();
     }
