@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="net.mootoh.toggltouch"
+    package="net.mootoh.touggl"
     android:versionCode="1"
     android:versionName="1.0" >
 
@@ -65,8 +65,8 @@
             android:name=".TouchService"
             android:exported="false" >
             <intent-filter>
-                <action android:name="net.mootoh.toggltouch.START_TASK" />
-                <action android:name="net.mootoh.toggltouch.STOP_TASK" />
+                <action android:name="net.mootoh.touggl.START_TASK" />
+                <action android:name="net.mootoh.touggl.STOP_TASK" />
             </intent-filter>
         </service>
     </application>

@@ -1,4 +1,4 @@
-package net.mootoh.toggltouch;
+package net.mootoh.touggl;
 
 import java.sql.SQLException;
 import java.text.ParseException;
@@ -22,12 +22,14 @@ public class Task {
     private String description;
     private Date startedAt;
 
-    private static java.text.DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    private static java.text.DateFormat formatter1 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+    private static java.text.DateFormat formatter2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
     static {
-        formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+        formatter1.setTimeZone(TimeZone.getTimeZone("UTC"));
+        formatter2.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
-    private static final String CREATED_WITH = "TogglTouch";
+    private static final String CREATED_WITH = "Touggl";
 
     public static final String TABLE_NAME = "tasks";
     public static final String COLUMN_NAME_DESCRIPTION = "description";
@@ -44,9 +46,13 @@ public class Task {
         this.id = id;
         this.description = description;
         try {
-            this.startedAt = formatter.parse(started);
-        } catch (ParseException e) {
-            e.printStackTrace();
+            this.startedAt = formatter1.parse(started);
+        } catch (ParseException e1) {
+            try {
+                this.startedAt = formatter2.parse(started);
+            } catch (ParseException e2) {
+                e2.printStackTrace();
+            }
         }
     }
 
@@ -92,7 +98,7 @@ public class Task {
     }
 
     private String dateAsISO8601(Date date) {
-        return formatter.format(date);
+        return formatter1.format(date);
     }
 
     public String toStopJsonString() throws JSONException {
@@ -116,7 +122,7 @@ public class Task {
         ContentValues values = new ContentValues();
         values.put(COLUMN_NAME_ID, id);
         values.put(COLUMN_NAME_DESCRIPTION, description);
-        values.put(COLUMN_NAME_STARTED, formatter.format(startedAt));
+        values.put(COLUMN_NAME_STARTED, formatter1.format(startedAt));
 
         DatabaseHelper dbHelper = new DatabaseHelper(context);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
@@ -129,7 +135,7 @@ public class Task {
     public void update(Context context) throws SQLException {
         ContentValues values = new ContentValues();
         values.put(COLUMN_NAME_ID, id);
-        values.put(COLUMN_NAME_STARTED, formatter.format(startedAt));
+        values.put(COLUMN_NAME_STARTED, formatter1.format(startedAt));
 
         DatabaseHelper dbHelper = new DatabaseHelper(context);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
@@ -151,14 +157,23 @@ public class Task {
         if (cursor.moveToFirst()) {
             String dateString = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_STARTED));
             try {
-                Date started = formatter.parse(dateString);
+                Date started = formatter1.parse(dateString);
                 task = new Task(
                         cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_ID)),
                         cursor.getString(cursor.getColumnIndex(COLUMN_NAME_DESCRIPTION)),
                         started
                         );
-            } catch (ParseException e) {
-                e.printStackTrace();
+            } catch (ParseException e1) {
+                try {
+                    Date started = formatter2.parse(dateString);
+                    task = new Task(
+                            cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_ID)),
+                            cursor.getString(cursor.getColumnIndex(COLUMN_NAME_DESCRIPTION)),
+                            started
+                            );
+                } catch (ParseException e2) {
+                    e2.printStackTrace();
+                }
             }
         }
         cursor.close();
@@ -176,14 +191,23 @@ public class Task {
         if (cursor.moveToFirst()) {
             String dateString = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_STARTED));
             try {
-                Date started = formatter.parse(dateString);
+                Date started = formatter1.parse(dateString);
                 task = new Task(
                         cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_ID)),
                         cursor.getString(cursor.getColumnIndex(COLUMN_NAME_DESCRIPTION)),
                         started
                         );
-            } catch (ParseException e) {
-                e.printStackTrace();
+            } catch (ParseException e1) {
+                try {
+                    Date started = formatter2.parse(dateString);
+                    task = new Task(
+                            cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_ID)),
+                            cursor.getString(cursor.getColumnIndex(COLUMN_NAME_DESCRIPTION)),
+                            started
+                            );
+                } catch (ParseException e2) {
+                    e2.printStackTrace();
+                }
             }
         }
         cursor.close();
@@ -200,13 +224,21 @@ public class Task {
         while (cursor.moveToNext()) {
             String dateString = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_STARTED));
             try {
-                Date started = formatter.parse(dateString);
+                Date started = formatter1.parse(dateString);
                 Task task = new Task(cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_ID)),
                         cursor.getString(cursor.getColumnIndex(COLUMN_NAME_DESCRIPTION)),
                         started);
                 tasks.add(task);
             } catch (ParseException e) {
-                e.printStackTrace();
+                try {
+                    Date started = formatter2.parse(dateString);
+                    Task task = new Task(cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_ID)),
+                            cursor.getString(cursor.getColumnIndex(COLUMN_NAME_DESCRIPTION)),
+                            started);
+                    tasks.add(task);
+                } catch (ParseException e2) {
+                    e2.printStackTrace();
+                }
             }
         }
         cursor.close();

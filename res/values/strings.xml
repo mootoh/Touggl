@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <string name="hello">Hello World, SettingActivity!</string>
-    <string name="app_name">TogglTouch</string>
+    <string name="app_name">Touggl</string>
     <string name="username">Email</string>
     <string name="password">Password</string>
     <string name="goAuth">Go</string>

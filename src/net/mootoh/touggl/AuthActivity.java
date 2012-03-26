@@ -1,4 +1,4 @@
-package net.mootoh.toggltouch;
+package net.mootoh.touggl;
 
 import android.app.ActionBar;
 import android.app.Activity;

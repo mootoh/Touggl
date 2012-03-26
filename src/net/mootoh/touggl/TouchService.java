@@ -1,4 +1,4 @@
-package net.mootoh.toggltouch;
+package net.mootoh.touggl;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -9,8 +9,8 @@ import android.os.IBinder;
 import android.util.Log;
 
 public final class TouchService extends Service {
-    protected static final String ACTION_START = "net.mootoh.toggltouch.START_TASK";
-    protected static final String ACTION_STOP = "net.mootoh.toggltouch.STOP_TASK";
+    protected static final String ACTION_START = "net.mootoh.touggl.START_TASK";
+    protected static final String ACTION_STOP = "net.mootoh.touggl.STOP_TASK";
     protected static final String TASK_DESCRIPTION = "TASK_DESCRIPTION";
     private static final int TASK_NOTIFICATION_ID = 1;
 
@@ -40,7 +40,7 @@ public final class TouchService extends Service {
 
         if (started) {
             nbuilder
-            .setContentTitle("TogglTouch")
+            .setContentTitle("Touggl")
             .setContentText("Current Task: " + taskDescription);
         }
 

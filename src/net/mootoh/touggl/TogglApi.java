@@ -1,8 +1,7 @@
-package net.mootoh.toggltouch;
+package net.mootoh.touggl;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -36,7 +35,7 @@ public class TogglApi {
     public TogglApi(final Context context) {
         this.context = context;
 
-        SharedPreferences sp = context.getSharedPreferences(TogglTouch.STORAGE_NAME, 0);
+        SharedPreferences sp = context.getSharedPreferences(Touggl.STORAGE_NAME, 0);
         apiToken = sp.getString(API_TOKEN_KEY, null);
     }
 
@@ -45,7 +44,7 @@ public class TogglApi {
     }
 
     public void clearToken() {
-        SharedPreferences sp = context.getSharedPreferences(TogglTouch.STORAGE_NAME, 0);
+        SharedPreferences sp = context.getSharedPreferences(Touggl.STORAGE_NAME, 0);
         SharedPreferences.Editor spe = sp.edit();
         spe.clear();
         spe.commit();
@@ -55,7 +54,7 @@ public class TogglApi {
     private void setToken(String token) {
         apiToken = token;
 
-        SharedPreferences sp = context.getSharedPreferences(TogglTouch.STORAGE_NAME, 0);
+        SharedPreferences sp = context.getSharedPreferences(Touggl.STORAGE_NAME, 0);
         SharedPreferences.Editor spe = sp.edit();
         spe.putString(SettingActivity.API_TOKEN_KEY, apiToken);
         spe.commit();

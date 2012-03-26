@@ -1,5 +1,5 @@
-package net.mootoh.toggltouch;
+package net.mootoh.touggl;
 
-public class TogglTouch {
+public class Touggl {
     static final String STORAGE_NAME = "toggleTouchStorage";
 }

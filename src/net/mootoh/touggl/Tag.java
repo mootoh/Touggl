@@ -1,4 +1,4 @@
-package net.mootoh.toggltouch;
+package net.mootoh.touggl;
 
 
 import java.sql.SQLException;
@@ -164,20 +164,20 @@ public final class Tag {
     }
 
     public static Tag getCurrent(Context context) {
-        SharedPreferences sp = context.getSharedPreferences(TogglTouch.STORAGE_NAME, 0);
+        SharedPreferences sp = context.getSharedPreferences(Touggl.STORAGE_NAME, 0);
         String current = sp.getString(CURRENT_TAG_KEY, null);
         return current == null ? null : Tag.get(current, context);
     }
 
     public static void setCurrent(Context context, Tag tag) {
-        SharedPreferences sp = context.getSharedPreferences(TogglTouch.STORAGE_NAME, 0);
+        SharedPreferences sp = context.getSharedPreferences(Touggl.STORAGE_NAME, 0);
         SharedPreferences.Editor spe = sp.edit();
         spe.putString(CURRENT_TAG_KEY, tag.id);
         spe.commit();
     }
 
     public static void resetCurrent(Context context) {
-        SharedPreferences sp = context.getSharedPreferences(TogglTouch.STORAGE_NAME, 0);
+        SharedPreferences sp = context.getSharedPreferences(Touggl.STORAGE_NAME, 0);
         SharedPreferences.Editor spe = sp.edit();
         spe.remove(CURRENT_TAG_KEY);
         spe.commit();

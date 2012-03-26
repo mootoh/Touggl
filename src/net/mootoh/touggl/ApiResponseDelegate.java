@@ -1,4 +1,4 @@
-package net.mootoh.toggltouch;
+package net.mootoh.touggl;
 
 public interface ApiResponseDelegate <T> {
     public void onSucceeded(T result);

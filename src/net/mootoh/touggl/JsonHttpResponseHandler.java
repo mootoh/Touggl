@@ -1,4 +1,4 @@
-package net.mootoh.toggltouch;
+package net.mootoh.touggl;
 
 import org.json.JSONException;
 import org.json.JSONObject;
